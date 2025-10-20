@@ -1,0 +1,126 @@
+	package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.IrreDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.Irre;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.IRREService;
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class IRREServiceImpl implements IRREService{
+	@Autowired
+	private IrreDAO irreDAO;
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	String nivel1 = "0",nivel2 = "0",nivel3 = "0",nivel4 = "0",moneda = "0",afectacion = "0",nivelfondos = "0",operacion = "0",
+		   claveramo = "0",saldo = "0",claveIrre = "0";
+	
+	String cadena = nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+	.concat(moneda).concat("|").concat(afectacion).concat("|").concat(nivelfondos).concat("|").concat(operacion).concat("|")
+	.concat(claveramo).concat("|").concat(saldo).concat("|").concat(claveIrre).concat("|;");
+	
+	@Override
+	 public ArchivoRespuesta obtenerIRRE(String nombre, String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtIrre(nombre, anioMes));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+	
+	public String GenerarTxtIrre(String nombre, String anioMes) throws IOException {
+		String response = "";
+//		List<Irre> ListaIrre = irreDAO.findAll();
+		List<Irre> ListaIrre = irreDAO.findByAnioMes(anioMes);
+
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaIrre != null && ListaIrre.size() != 0) {
+			for (Irre Lista : ListaIrre) {
+				if(Lista != null) {
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				afectacion = Lista.getAfectacion();
+				nivelfondos = Lista.getNivelFondos();
+				operacion = Lista.getOperacion();
+				claveramo = Lista.getCveRamo();
+				saldo = Lista.getSaldo();
+				claveIrre = Lista.getCveIrre()+"";
+				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(moneda).concat("|").concat(afectacion).concat("|").concat(nivelfondos).concat("|").concat(operacion).concat("|")
+						.concat(claveramo).concat("|").concat(saldo).concat("|;"));
+				bw.newLine();
+				}
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo IRRE creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public String saveList(List<Irre> lista) {
+		irreDAO.saveAll(lista);
+		return "ok";
+	}
+	
+	@Override
+	public boolean getExistRecords(String anioMes) {
+
+		boolean existenRegistros = false;
+		
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM IRRE WHERE ANIOMES = '" + anioMes + "';";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =   rowSet.getInt("EXISTEN_REGISTROS") == 1 ? true : false ;
+		}
+		logger.info("existenRegistros " + existenRegistros);
+		return existenRegistros;
+	}
+
+}

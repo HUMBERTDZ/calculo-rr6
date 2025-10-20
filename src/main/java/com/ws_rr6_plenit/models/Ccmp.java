@@ -1,0 +1,206 @@
+package com.ws_rr6_plenit.models;
+
+import java.io.Serializable;
+import javax.persistence.*;
+
+@Entity
+@Table(name = "CCMP")
+@NamedQuery(name = "Ccmp.findAll", query = "SELECT c FROM Ccmp c")
+public class Ccmp implements Serializable {
+
+	private static final long serialVersionUID = -7910915856253520786L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "CVE_CCMP")
+	private int cveCcmp;
+
+	@Column(name = "NIVEL_1")
+	private String nivel1;
+
+	@Column(name = "NIVEL_2")
+	private String nivel2;
+
+	@Column(name = "NIVEL_3")
+	private String nivel3;
+
+	@Column(name = "NIVEL_4")
+	private String nivel4;
+
+	@Column(name = "MONEDA")
+	private String moneda;
+
+	@Column(name = "CAPITAL_CONTABLE")
+	private double capitalContable;
+
+	@Column(name = "IXV_INM_NETO")
+	private double ixvInmNeto;
+
+	@Column(name = "UTIL_VAL_CAPITAL")
+	private double utilValCapital;
+
+	@Column(name = "INC_CAP_INM")
+	private double incCapInm;
+
+	@Column(name = "CAPITAL_PAGADO")
+	private double capitalPagado;
+
+	@Column(name = "IXV_INM_NETO_RT")
+	private double ixvInmNetoRt;
+
+	@Column(name = "IXV_INM_NETO_SUSCEPT")
+	private double ixvInmNetoRtSuscept;
+
+	@Column(name = "CMP")
+	private double cmp;
+
+	@Column(name = "CMP_EXIGIDO")
+	private double cmpExigido;
+
+	@Column(name = "SOBRANTE")
+	private double sobrante;
+
+	@Column(name = "ANIOMES")
+	private String anioMes;
+
+	public Ccmp() {
+
+	}
+
+	public int getCveCcmp() {
+		return cveCcmp;
+	}
+
+	public void setCveCcmp(int cveCcmp) {
+		this.cveCcmp = cveCcmp;
+	}
+
+	public String getAnioMes() {
+		return anioMes;
+	}
+
+	public void setAnioMes(String anioMes) {
+		this.anioMes = anioMes;
+	}
+
+	public String getMoneda() {
+		return moneda;
+	}
+
+	public void setMoneda(String moneda) {
+		this.moneda = moneda;
+	}
+
+	public String getNivel1() {
+		return nivel1;
+	}
+
+	public void setNivel1(String nivel1) {
+		this.nivel1 = nivel1;
+	}
+
+	public String getNivel2() {
+		return nivel2;
+	}
+
+	public void setNivel2(String nivel2) {
+		this.nivel2 = nivel2;
+	}
+
+	public String getNivel3() {
+		return nivel3;
+	}
+
+	public void setNivel3(String nivel3) {
+		this.nivel3 = nivel3;
+	}
+
+	public String getNivel4() {
+		return nivel4;
+	}
+
+	public void setNivel4(String nivel4) {
+		this.nivel4 = nivel4;
+	}
+
+	public double getCapitalContable() {
+		return capitalContable;
+	}
+
+	public void setCapitalContable(double capitalContable) {
+		this.capitalContable = capitalContable;
+	}
+
+	public double getIxvInmNeto() {
+		return ixvInmNeto;
+	}
+
+	public void setIxvInmNeto(double ixvInmNeto) {
+		this.ixvInmNeto = ixvInmNeto;
+	}
+
+	public double getUtilValCapital() {
+		return utilValCapital;
+	}
+
+	public void setUtilValCapital(double utilValCapital) {
+		this.utilValCapital = utilValCapital;
+	}
+
+	public double getIncCapInm() {
+		return incCapInm;
+	}
+
+	public void setIncCapInm(double incCapInm) {
+		this.incCapInm = incCapInm;
+	}
+
+	public double getCapitalPagado() {
+		return capitalPagado;
+	}
+
+	public void setCapitalPagado(double capitalPagado) {
+		this.capitalPagado = capitalPagado;
+	}
+
+	public double getIxvInmNetoRt() {
+		return ixvInmNetoRt;
+	}
+
+	public void setIxvInmNetoRt(double ixvInmNetoRt) {
+		this.ixvInmNetoRt = ixvInmNetoRt;
+	}
+
+	public double getIxvInmNetoRtSuscept() {
+		return ixvInmNetoRtSuscept;
+	}
+
+	public void setIxvInmNetoRtSuscept(double ixvInmNetoRtSuscept) {
+		this.ixvInmNetoRtSuscept = ixvInmNetoRtSuscept;
+	}
+
+	public double getCmp() {
+		return cmp;
+	}
+
+	public void setCmp(double cmp) {
+		this.cmp = cmp;
+	}
+
+	public double getCmpExigido() {
+		return cmpExigido;
+	}
+
+	public void setCmpExigido(double cmpExigido) {
+		this.cmpExigido = cmpExigido;
+	}
+
+	public double getSobrante() {
+		return sobrante;
+	}
+
+	public void setSobrante(double sobrante) {
+		this.sobrante = sobrante;
+	}
+
+}

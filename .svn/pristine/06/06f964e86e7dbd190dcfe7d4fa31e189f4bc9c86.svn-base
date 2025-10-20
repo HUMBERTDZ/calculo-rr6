@@ -1,0 +1,30 @@
+package com.ws_rr7_generico.dao;
+
+import javax.transaction.Transactional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+
+@Repository
+public interface BaseLayoutRr7DAO extends JpaRepository<BaseLayoutRr7, Integer>{
+
+	
+
+	@Modifying
+	@Transactional
+	@Query(value = " SELECT IIF (COUNT(*) > 1, 1, 0)  FROM BALANZACONTABLE WHERE ANIO = :anio AND MES = :mes ", nativeQuery = true)
+	boolean getExistDataBalanzaContableByAnioMes(@Param("anio") int anio,@Param("mes") String mes);
+	
+
+	@Modifying
+	@Transactional
+	@Query(value = " update CMBG set valores = 0 ", nativeQuery = true)
+	void limpiarInfo();
+	
+	
+}

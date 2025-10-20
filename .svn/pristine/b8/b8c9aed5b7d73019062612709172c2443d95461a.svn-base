@@ -1,0 +1,20 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Deud;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface DEUDService {
+
+	ArchivoRespuesta obtenerDEUD(String nombre, String anioMes) throws IOException ;
+
+	String saveList(List<Deud> lista); 
+
+	ResponseMessage updateDeud(List<BaseLayoutRr7> getBaseLayoutRr7);
+	
+	boolean getExistRecords(String anioMes);
+}

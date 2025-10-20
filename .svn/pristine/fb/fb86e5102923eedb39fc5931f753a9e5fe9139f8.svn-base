@@ -1,0 +1,13 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface OPACService {
+	ArchivoRespuesta obtenerOPAC(String nombre) throws IOException ;
+	ResponseMessage updateOpac(List<BaseLayoutRr7> getBaseLayoutRr7);
+}

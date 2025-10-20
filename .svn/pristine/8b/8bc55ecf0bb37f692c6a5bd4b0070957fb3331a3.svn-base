@@ -1,0 +1,20 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Fopa;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface FOPAService {
+	ArchivoRespuesta obtenerFOPA(String nombre) throws IOException ;
+
+	ResponseMessage updateFopa(List<BaseLayoutRr7> getBaseLayoutRr7);
+	
+	String saveList(List<Fopa> lista);
+	
+	boolean getExistRecords(String anioMes);
+	
+}

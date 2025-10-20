@@ -1,0 +1,142 @@
+package com.ws_rr7_generico.dao;
+
+import java.util.List;
+import javax.transaction.Transactional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cmbg;
+
+@Repository
+public interface ValArchivosRR7Dao extends JpaRepository<BaseLayoutRr7, Integer> {
+	
+	/**** VALIDACION IRRE, OPAS, CSOC, CORD, FOPA - CMBG ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_:archivo') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_:archivo END; "
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', ':archivoE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_:archivo "
+			+ "FROM :archivo A  "
+			+ "INNER JOIN CMBG B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4  "
+			+ "AND A.MONEDA = B.CVEMONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, A.MONEDA ", nativeQuery = true)
+	public void validarArchivosCMBG1(@Param("anioMes") String anioMes, @Param("archivo") String archivo);
+	
+	/**** VALIDACION OACT, ACRE - CMBG ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_:archivo') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_:archivo END; "
+			+ "SELECT A.NIVEL1 , A.NIVEL2, A.NIVEL3, A.NIVEL4, A.MONEDA, "
+			+ "IIF(SUM(A.VALORES) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', ':archivoE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_:archivo "
+			+ "FROM :archivo A  "
+			+ "INNER JOIN CMBG B ON A.NIVEL1 = B.NIVEL1 AND A.NIVEL2 = B.NIVEL2 AND A.NIVEL3 = B.NIVEL3 AND A.NIVEL4 = B.NIVEL4  "
+			+ "AND A.MONEDA = B.CVEMONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, A.MONEDA ", nativeQuery = true)
+	void validarArchivosCMBG2(@Param("anioMes") String anioMes, @Param("archivo") String archivo);
+	
+	/**** VALIDACION COPE - CMER, SOLO POR NOMBRE COLUMNAS ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_COPE') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_COPE END;  "
+			+ "SELECT A.NIVEL1 AS NIVEL_1, A.NIVEL2 AS NIVEL_2, A.NIVEL3 AS NIVEL_3, A.NIVEL4 AS NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2),'', 'COPEE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_COPE "
+			+ "FROM COPE A "
+			+ "INNER JOIN CMER B ON A.NIVEL1 = B.NIVEL1 AND A.NIVEL2 = B.NIVEL2 AND A.NIVEL3 = B.NIVEL3 AND A.NIVEL4 = B.NIVEL4 "
+			+ "AND A.OPERACION = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAM = B.SUBRAMO AND A.CVE_SUBSUBRAMO = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL1, A.NIVEL2, A.NIVEL3, A.NIVEL4, A.MONEDA ", nativeQuery = true)
+	void validarCopeCMER(@Param("anioMes") String anioMes);
+	
+	/**** VALIDACION CSIN - CMER, SOLO POR EL CAMPO CON ACENTO ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_CSIN') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_CSIN END;  "
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', 'CSINE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_CSIN "
+			+ "FROM CSIN A "
+			+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+			+ "AND A.[OPERACIÓN] = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAM = B.SUBRAMO AND A.CVE_SUBSUBRAMO = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ", nativeQuery = true)
+	void validarCsinCMER(@Param("anioMes") String anioMes);
+	
+	/**** VALIDACION OPAC - CMER, CAMPO OPERACION ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_OPAC') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_OPAC END;  "
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A. MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', 'OPACE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_OPAC "
+			+ "FROM OPAC A "
+			+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+			+ "AND A.CVE_OPER = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAMO = B.SUBRAMO AND A.CVE_SUBSUBRAMO = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ", nativeQuery = true)
+	void validarOpacCMER(@Param("anioMes") String anioMes);
+	
+	/**** VALIDACION CADQ - CMER, CAMPO SSRAMO ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_CADQ') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_CADQ END; "
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 1) AND (MAX(B.VALORES) + 1), '', 'CADQE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_CADQ "
+			+ "FROM CADQ A "
+			+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+			+ "AND A.OPERACION = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAM = B.SUBRAMO AND A.CVE_SUBSUBRAMO = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ", nativeQuery = true)
+	void validarCaqdCMER(@Param("anioMes") String anioMes);
+	
+	/**** VALIDACION PRIM - CMER ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_PRIM') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_PRIM END;"
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', 'PRIME01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_PRIM "
+			+ "FROM PRIM A "
+			+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+			+ "AND A.OPERACION = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAM = B.SUBRAMO AND A.CVE_SUBSUBRAM = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ", nativeQuery = true)
+	void validarPrimCMER(@Param("anioMes") String anioMes);
+	
+	/**** VALIDACION RIFI - CMER ****/
+	@Modifying
+	@Transactional
+	@Query(value = "IF OBJECT_ID('TBL_VALIDACIONES_RIFI') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_RIFI END; "
+			+ "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+			+ "IIF(SUM(A.SALDO) BETWEEN (MAX(B.VALORES) - 2) AND (MAX(B.VALORES) + 2), '', 'RIFIE01') AS ERROR_1 "
+			+ "INTO TBL_VALIDACIONES_RIFI "
+			+ "FROM RIFI A "
+			+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+			+ "AND A.OPERACION = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAM = B.SUBRAMO AND A.CVE_SUBSUBRAM = B.SUBSUBRAMO "
+			+ "AND A.MONEDA = B.MONEDA "
+			+ "WHERE A.ANIOMES = :anioMes "
+			+ "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ", nativeQuery = true)
+	void validarRifiCMER(@Param("anioMes") String anioMes);
+	
+	/**** CMBG 
+	 * @return ****/
+	@Transactional
+	@Query(value = "SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, CVEMONEDA, VALORES FROM CMBG", nativeQuery = true)
+	List<Cmbg> informationCMBG();
+	
+}

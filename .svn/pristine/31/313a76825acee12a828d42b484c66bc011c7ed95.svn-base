@@ -1,0 +1,998 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.util.List;
+import java.util.Map;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import com.ws_rr7_generico.services.ValArchivosRR7Service;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Service
+public class ValArchivosRR7ServiceImpl implements ValArchivosRR7Service {
+
+	Logger logger = LoggerFactory.getLogger(ValArchivosRR7ServiceImpl.class);
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	@Override
+	public ResponseMessage ValidarArchivosConCMBG(String anioMes) throws IOException {
+		ResponseMessage respuesta = null;
+		XSSFWorkbook response = new XSSFWorkbook();
+		int si = 0;
+		try {
+			ArrayList<String> archivos1 = new ArrayList<String>();
+			archivos1.add("IRRE");
+			archivos1.add("FOPA");
+
+			logger.info("VALIDANDO ARCHIVOS 1 CMBG");
+			for (int i = 0; i < archivos1.size(); i++) {
+				si = 0;
+				crearEliminarTablaFinal(archivos1.get(i));
+				si = validacionArchivos1(archivos1.get(i), anioMes);
+
+				if (si == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,
+							"Se genero la Validación para " + archivos1.get(i), 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR,
+							"Ocurrio un problema al validar " + archivos1.get(i), -1);
+				}
+			}
+
+			logger.info("VALIDANDO ARCHIVOS 2 CMBG");
+			ArrayList<String> archivos2 = new ArrayList<String>();
+			archivos2.add("OPAS");
+			archivos2.add("CSOC");
+			archivos2.add("CORD");
+			archivos2.add("OACT");
+			archivos2.add("ACRE");
+
+			for (int i = 0; i < archivos2.size(); i++) {
+				si = 0;
+				crearEliminarTablaFinal(archivos2.get(i));
+				si = validacionArchivos2(archivos2.get(i));
+
+				if (si == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,
+							"Se genero la Validación para " + archivos2.get(i), 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR,
+							"Ocurrio un problema al validar " + archivos2.get(i), -1);
+				}
+			}
+
+//			logger.info("VALIDANDO ARCHIVOS 3 CMBG");
+//			ArrayList<String> archivos3 = new ArrayList<String>();
+//			
+//
+//			for (int i = 0; i < archivos3.size(); i++) {
+//				si = 0;
+//				crearEliminarTablaFinal(archivos3.get(i));
+//				si = validacionArchivos3(archivos3.get(i));
+//
+//				if (si == 1) {
+//					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,
+//							"Se genero la Validación para " + archivos3.get(i), 1);
+//				} else {
+//					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR,
+//							"Ocurrio un problema al validar " + archivos3.get(i), -1);
+//				}
+//			}
+
+			logger.info("VALIDANDO ARCHIVOS 1 CMER");
+			ArrayList<String> archivos4 = new ArrayList<String>();
+			archivos4.add("RIFI");
+			archivos4.add("PRIM");
+			archivos4.add("CADQ");
+			archivos4.add("CSIN");
+			archivos4.add("OPAC");
+			archivos4.add("COPE");
+
+			for (int i = 0; i < archivos4.size(); i++) {
+				si = 0;
+				crearEliminarTablaFinal(archivos4.get(i));
+				si = validacionArchivos4(archivos4.get(i));
+
+				if (si == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,
+							"Se genero la Validación para " + archivos4.get(i), 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR,
+							"Ocurrio un problema al validar " + archivos4.get(i), -1);
+				}
+			}
+			// OPTENER INFORMACION DE VALIDACIONES BY PANCHS
+
+			creacionSheetsArchivos(archivos1, response);
+			creacionSheetsArchivos(archivos2, response);
+//			creacionSheetsArchivos(archivos3, response);
+			creacionSheetsArchivos(archivos4, response);
+			
+			Map<String, String> mapCatE =  getMapCatErroresArchivosRR7();
+
+			// HASTA AQUÍ BIEN CON LAS VALIDACIONES
+			List<Map<String, Object>> datosCMBG = obtenerAllInfoCMBG();
+			DecimalFormat formato = new DecimalFormat("###,###.##");
+
+			String nivel1, nivel2, nivel3, nivel4, monCMBG, ctaCMBG;
+			double valCMBG = 0;
+			ArrayList<String> ctasCMBG = new ArrayList<>();
+			ArrayList<String> valCCMPInmu2 = new ArrayList<>();
+			ArrayList<String> valCCMPInmu3 = new ArrayList<>();
+
+			for (Map<String, Object> map : datosCMBG) {
+				nivel1 = map.get("NIVEL1").toString();
+				nivel2 = map.get("NIVEL2").toString();
+				nivel3 = map.get("NIVEL3").toString();
+				nivel4 = map.get("NIVEL4").toString();
+				monCMBG = map.get("CVEMONEDA").toString();
+				valCMBG = Double.parseDouble(map.get("VALORES").toString());
+
+				ctaCMBG = nivel1 + "|" + nivel2 + "|" + nivel3 + "|" + nivel4 + "|" + monCMBG + "|"
+						+ formato.format(valCMBG) + "|";
+
+				ctasCMBG.add(ctaCMBG);
+			}
+//			System.out.println("Todas ctas CMBG: " + ctasCMBG);
+
+			logger.info("VALIDANDO ARCHIVO INMU");
+			List<Map<String, Object>> datosINMU = obtenerAllInfoINMU(anioMes);
+			ArrayList<String> ctasINMU = new ArrayList<String>();
+			ArrayList<String> inmuE01a3 = new ArrayList<String>();
+			ArrayList<String> inmuE04 = new ArrayList<String>();
+			ArrayList<String> inmuE05 = new ArrayList<String>();
+			ArrayList<String> inmuE06 = new ArrayList<String>();
+			ArrayList<String> inmuE07 = new ArrayList<String>();
+			ArrayList<String> inmuE08 = new ArrayList<String>();
+			ArrayList<String> inmuE09 = new ArrayList<String>();
+			ArrayList<String> inmuE10 = new ArrayList<String>();
+
+			String n1Inmu, n2Inmu, n3Inmu, n4Inmu, monInmu, ctaInmu1, ctaInmu2, ctaInmu3, AfectacionInmu, valCmmpInmu1,
+					valCmmpInmu2;
+			double ctoHist, incrVal, depreciHi, depreInc, totalInmueble, superavitAfecto, superavitRSC, superavitOP,
+					porcentajeAfect, capSuperavit;
+
+			if (!datosINMU.isEmpty()) {
+				for (Map<String, Object> map : datosINMU) { 
+					n1Inmu = map.get("NIVEL_1").toString();
+					n2Inmu = map.get("NIVEL_2").toString();
+					n3Inmu = map.get("NIVEL_3").toString();
+					n4Inmu = map.get("NIVEL_4").toString();
+					monInmu = map.get("MONEDA").toString();
+					ctoHist = Double.parseDouble(map.get("CTO_HIST").toString());
+					incrVal = Double.parseDouble(map.get("INCR_VAL").toString());
+					depreciHi = Double.parseDouble(map.get("DEPRECI_HI").toString());
+					depreInc = Double.parseDouble(map.get("DEPRE_INC").toString());
+					totalInmueble = Double.parseDouble(map.get("TOTAL_INMUEBLE").toString());
+					AfectacionInmu = map.get("AFECTACION").toString();
+					superavitAfecto = Double.parseDouble(map.get("SUPERAVIT_AFECTO_BI").toString());
+					superavitRSC = Double.parseDouble(map.get("SUPERAVIT_AFECTO_RCS").toString());
+					superavitOP = Double.parseDouble(map.get("SUPERAVIT_AFECTO_OP").toString());
+					porcentajeAfect = Double.parseDouble(map.get("PORCENTAJE_AFECT").toString());
+					capSuperavit = Double.parseDouble(map.get("CAP_SUPERAVIT").toString());
+
+					ctaInmu1 = n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+							+ formato.format(ctoHist) + "|";
+					ctaInmu2 = n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+							+ formato.format(incrVal) + "|";
+					ctaInmu3 = n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+							+ formato.format((depreciHi + depreInc)) + "|";
+
+					ctasINMU.add(ctaInmu1);
+					ctasINMU.add(ctaInmu2);
+					ctasINMU.add(ctaInmu3);
+
+					double suma1 = ctoHist + incrVal;
+					double suma2 = depreciHi + depreInc;
+					double sumaVal4 = suma1 + suma2;
+					double suma3 = superavitAfecto + superavitRSC + superavitOP;
+					double suma4 = incrVal + depreInc;
+					double porcentaje = porcentajeAfect / 100;
+
+					valCmmpInmu1 = n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|" + suma4
+							+ "|";
+					valCmmpInmu2 = n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+							+ superavitAfecto + "|";
+
+					if (sumaVal4 != totalInmueble) {
+						inmuE04.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+									+ sumaVal4 + "|" + totalInmueble + "|");
+					}
+
+					if (AfectacionInmu.equals("01")) {
+						if (superavitAfecto == 0) {
+							inmuE05.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|" 
+									+ superavitAfecto+ "|");
+						}
+
+						if (suma3 != suma4) {
+							inmuE07.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+									+ suma3 + "|" + suma4 + "|");
+						}
+
+						if (superavitAfecto != (suma4 * porcentaje)) { // REVISAR TODO LA INMUE08 8.5.5
+							inmuE08.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+									+ superavitAfecto + "|" + (suma4 * porcentaje) + "|");
+						}
+
+						if (porcentajeAfect != 45) {
+							inmuE10.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|"
+									+ porcentajeAfect + "|");
+						}
+					}
+
+					if (capSuperavit < 0) {
+						inmuE09.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|");
+					}
+
+					if (AfectacionInmu.equals("02") || AfectacionInmu.equals("03")) {
+						if (superavitAfecto != 0 && superavitRSC != 0 && superavitOP != 0) {
+							inmuE06.add(n1Inmu + "|" + n2Inmu + "|" + n3Inmu + "|" + n4Inmu + "|" + monInmu + "|");
+						}
+					}
+
+					valCCMPInmu2.add(valCmmpInmu1); // para validacion de CCMP
+					valCCMPInmu3.add(valCmmpInmu2); // para validacion de CCMP
+				}
+
+				System.out.println("ctas INMU: " + ctasINMU);
+
+				for (String cta : ctasINMU) {
+					inmuE01a3.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+
+				System.out.println("1 - 3  INMU: " + inmuE01a3);
+				System.out.println("4 INMU: " + inmuE04);
+				System.out.println("5 INMU: " + inmuE05);
+				System.out.println("6 INMU: " + inmuE06);
+				System.out.println("7 INMU: " + inmuE07);
+				System.out.println("8 INMU: " + inmuE08);
+				System.out.println("9 INMU: " + inmuE09);
+				System.out.println("10 INMU: " + inmuE10);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("INMUE01",inmuE01a3);
+				mapTotal.put("INMUE04",inmuE04);
+				mapTotal.put("INMUE05",inmuE05);
+				mapTotal.put("INMUE06",inmuE06);
+				mapTotal.put("INMUE07",inmuE07);
+				mapTotal.put("INMUE08",inmuE08);
+				mapTotal.put("INMUE09",inmuE09);
+				mapTotal.put("INMUE10",inmuE10);
+				creacionSheetsArchivos("INMU", response, mapTotal, mapCatE );
+				
+			}
+			logger.info("VALIDANDO ARCHIVO INDE");
+			List<Map<String, Object>> datosINDE = obtenerAllInfoINDE(anioMes);
+			ArrayList<String> indeCtas = new ArrayList<String>();
+			ArrayList<String> indeE01a3 = new ArrayList<String>();
+			ArrayList<String> indeE06 = new ArrayList<String>();
+
+			String n1Inde, n2Inde, n3Inde, n4Inde, monInde, ctaInde1, ctaInde2, ctaInde3;
+			double primaPagOP, aportGaranDer, netoCotiza, ctoAdqPosActiva, ctoAdqPosPasiva, netoAdquisicion;
+
+			if (!datosINDE.isEmpty()) {
+				for (Map<String, Object> map : datosINDE) {
+					n1Inde = map.get("NIVEL_1").toString();
+					n2Inde = map.get("NIVEL_2").toString();
+					n3Inde = map.get("NIVEL_3").toString();
+					n4Inde = map.get("NIVEL_4").toString();
+					monInde = map.get("MONEDA").toString();
+					primaPagOP = Double.parseDouble(map.get("PRIMA_PAGADA_OPCIONES").toString());
+					aportGaranDer = Double.parseDouble(map.get("APORT_GARANT_DERIVADOS").toString());
+					netoCotiza = Double.parseDouble(map.get("NETO_COTIZACION").toString());
+					ctoAdqPosActiva = Double.parseDouble(map.get("CTO_ADQ_POSICION_ACTIVA").toString());
+					ctoAdqPosPasiva = Double.parseDouble(map.get("CTO_ADQ_POSICION_PASIVA").toString());
+					netoAdquisicion = Double.parseDouble(map.get("NETO_ADQUISICION").toString());
+
+					ctaInde1 = n1Inde + "|" + n2Inde + "|" + n3Inde + "|" + n4Inde + "|" + monInde + "|"
+							+ formato.format(primaPagOP) + "|";
+					ctaInde2 = n1Inde + "|" + n2Inde + "|" + n3Inde + "|" + n4Inde + "|" + monInde + "|"
+							+ formato.format(aportGaranDer) + "|";
+					ctaInde3 = n1Inde + "|" + n2Inde + "|" + n3Inde + "|" + n4Inde + "|" + monInde + "|"
+							+ formato.format(netoCotiza) + "|";
+
+					if ((n1Inde + n2Inde + n3Inde + n4Inde).equals("110010201")) {
+						indeE01a3.add(ctaInde1);
+					}
+
+					if ((n1Inde + n2Inde + n3Inde + n4Inde).equals("110010202")) {
+						indeE01a3.add(ctaInde2);
+					}
+
+					if ((n1Inde + n2Inde + n3Inde + n4Inde).equals("110010203")) {
+						indeE01a3.add(ctaInde3);
+					}
+
+					if ((n1Inde + n2Inde + n3Inde + n4Inde).equals("413000000")) { // REVISAR TODO ESTA VAL...
+						indeE01a3.add(ctaInde3);
+					}
+
+					double resta1 = ctoAdqPosActiva - ctoAdqPosPasiva;
+					if (netoAdquisicion != resta1) {
+						indeE06.add(n1Inde + "|" + n2Inde + "|" + n3Inde + "|" + n4Inde + "|" + monInde + "|"
+								+ netoAdquisicion + "|" + resta1 + "|");
+					}
+
+				}
+
+				System.out.println("ctas INDE: " + indeE01a3);
+
+				for (String cta : indeE01a3) {
+					indeCtas.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+				System.out.println("1-5 INDE: " + indeCtas);
+				System.out.println("6 INDE: " + indeE06);
+				
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("INDEE01",indeCtas);
+				mapTotal.put("INDEE06",indeE06);
+				creacionSheetsArchivos("INDE", response, mapTotal, mapCatE );
+			}
+
+			logger.info("VALIDANDO ARCHIVO BASE");
+			List<Map<String, Object>> datosBASE = obtenerAllInfoBASE(anioMes);
+			ArrayList<String> baseCtas = new ArrayList<String>();
+			ArrayList<String> baseE01 = new ArrayList<String>();
+			ArrayList<String> baseE02 = new ArrayList<String>();
+
+			String n1Base, n2Base, n3Base, n4Base, monBase, ctaBase1;
+			double rsvaTot;
+			int porCp;
+
+			if (!datosBASE.isEmpty()) {
+				for (Map<String, Object> map : datosBASE) {
+					n1Base = map.get("NIVEL_1").toString();
+					n2Base = map.get("NIVEL_2").toString();
+					n3Base = map.get("NIVEL_3").toString();
+					n4Base = map.get("NIVEL_4").toString();
+					monBase = map.get("MONEDA").toString();
+					rsvaTot = Double.parseDouble(map.get("RSVA_TOT").toString());
+					porCp = Integer.parseInt(map.get("POR_CP").toString());
+
+					ctaBase1 = n1Base + "|" + n2Base + "|" + n3Base + "|" + n4Base + "|" + monBase + "|"
+							+ formato.format(rsvaTot) + "|";
+					baseCtas.add(ctaBase1);
+
+					if (porCp < 0) { // REVISAR TODO LA VALLIDACION CUSF
+						baseE02.add(n1Base + "|" + n2Base + "|" + n3Base + "|" + n4Base + "|" + monBase + "|"
+								+ porCp + "|");
+					}
+
+				}
+
+				for (String cta : baseCtas) {
+					baseE01.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+
+				System.out.println("1 BASE: " + baseE01);
+				System.out.println("2 BASE: " + baseE02);
+				
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("BASEE01",indeCtas);
+				mapTotal.put("BASEE02",indeE06);
+				creacionSheetsArchivos("BASE", response, mapTotal, mapCatE );
+			}
+
+			logger.info("VALIDANDO ARCHIVO CRED");
+			List<Map<String, Object>> datosCRED = obtenerAllInfoCRED(anioMes);
+			ArrayList<String> credCtas = new ArrayList<String>();
+			ArrayList<String> credE01a5 = new ArrayList<String>();
+			ArrayList<String> credE06 = new ArrayList<String>();
+
+			String n1Cred, n2Cred, n3Cred, n4Cred, monCred, ctaCred1, ctaCred2, ctaCred3, tipoCre;
+			double saldoCierre, carteraVencida, reservaPreventiva, pagoCapital, dxi, valHistIni;
+
+			if (!datosCRED.isEmpty()) {
+				for (Map<String, Object> map : datosCRED) {
+					n1Cred = map.get("NIVEL_1").toString();
+					n2Cred = map.get("NIVEL_2").toString();
+					n3Cred = map.get("NIVEL_3").toString();
+					n4Cred = map.get("NIVEL_4").toString();
+					monCred = map.get("MONEDA").toString();
+					tipoCre = map.get("TIPO_CREDITO").toString();
+					saldoCierre = Double.parseDouble(map.get("SALDO_CIERRE").toString());
+					carteraVencida = Double.parseDouble(map.get("CARTERA_VENCIDA").toString());
+					reservaPreventiva = Double.parseDouble(map.get("RESERVA_PREVENTIVA").toString());
+					valHistIni = Double.parseDouble(map.get("VAL_HIST_INICIAL").toString());
+					pagoCapital = Double.parseDouble(map.get("PAGO_CAPITAL").toString());
+					dxi = Double.parseDouble(map.get("D_X_I").toString());
+
+					ctaCred1 = n1Cred + "|" + n2Cred + "|" + n3Cred + "|" + n4Cred + "|" + monCred + "|"
+							+ formato.format(saldoCierre) + "|";
+					ctaCred2 = n1Cred + "|" + n2Cred + "|" + n3Cred + "|" + n4Cred + "|" + monCred + "|"
+							+ formato.format(carteraVencida) + "|";
+					ctaCred3 = n1Cred + "|" + n2Cred + "|" + n3Cred + "|" + n4Cred + "|" + monCred + "|"
+							+ formato.format(reservaPreventiva) + "|";
+
+					if (tipoCre.equals("PRES")) {
+						credE01a5.add(ctaCred1);
+						credE01a5.add(ctaCred2);
+						credE01a5.add(ctaCred3);
+					}
+
+					if (tipoCre.equals("VPREH") || tipoCre.equals("VPREHP")) {
+						credE01a5.add(ctaCred1);
+						credE01a5.add(ctaCred2);
+						credE01a5.add(ctaCred3);
+					}
+
+					if (tipoCre.equals("CPREP") || tipoCre.equals("CPREH") || tipoCre.equals("CPREQ")
+							|| tipoCre.equals("CPREQ")) {
+						credE01a5.add(ctaCred1);
+						credE01a5.add(ctaCred2);
+						credE01a5.add(ctaCred3);
+					}
+
+					if (tipoCre.equals("QPREQ") || tipoCre.equals("QPREE") || tipoCre.equals("QPREA")
+							|| tipoCre.equals("QPREAJ") || tipoCre.equals("QPREX")) {
+						credE01a5.add(ctaCred1);
+						credE01a5.add(ctaCred2);
+						credE01a5.add(ctaCred3);
+					}
+
+					if (tipoCre.equals("PRER")) {
+						credE01a5.add(ctaCred1);
+						credE01a5.add(ctaCred2);
+						credE01a5.add(ctaCred3);
+					}
+
+					double suma1 = valHistIni + (pagoCapital + dxi);
+					if (saldoCierre != suma1) {
+						credE06.add(n1Cred + "|" + n2Cred + "|" + n3Cred + "|" + n4Cred + "|" + monCred + "|"
+								+ saldoCierre + "|" + suma1 + "|");
+					}
+
+				}
+
+				for (String cta : credE01a5) {
+					credCtas.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+
+				System.out.println("1 a 5 CRED: " + credCtas);
+				System.out.println("6 CRED: " + credE06);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("CREDE01",indeCtas);
+				mapTotal.put("CREDE06",indeE06);
+				creacionSheetsArchivos("CRED", response, mapTotal, mapCatE );
+			}
+
+			logger.info("VALIDANDO ARCHIVO INVE");
+			List<Map<String, Object>> datosINVE = obtenerAllInfoINVE(anioMes);
+			ArrayList<String> inveCtas = new ArrayList<String>();
+			ArrayList<String> inveE01 = new ArrayList<String>();
+			ArrayList<String> inveE02 = new ArrayList<String>();
+			ArrayList<String> inveE03 = new ArrayList<String>();
+
+			String n1Inve, n2Inve, n3Inve, n4Inve, monInve, ctaInve1, ctaInve2, afecInve;
+			double dxInt, totalAct, valMercado, incDelVal, incXValRcs, incXValOp, premio;
+
+			if (!datosINVE.isEmpty()) {
+				for (Map<String, Object> map : datosINVE) {
+					n1Inve = map.get("NIVEL_1").toString();
+					n2Inve = map.get("NIVEL_2").toString();
+					n3Inve = map.get("NIVEL_3").toString();
+					n4Inve = map.get("NIVEL_4").toString();
+					monInve = map.get("MONEDA").toString();
+					afecInve = map.get("AFECTACION").toString();
+					dxInt = Double.parseDouble(map.get("D_X_INT").toString());
+					totalAct = Double.parseDouble(map.get("TOTAL_ACT").toString());
+					valMercado = Double.parseDouble(map.get("VAL_COT").toString());
+					incDelVal = Double.parseDouble(map.get("INC_DEL_VAL").toString());
+					incXValRcs = Double.parseDouble(map.get("INC_X_VALUA_RCS").toString());
+					incXValOp = Double.parseDouble(map.get("INC_X_VALUA_OP").toString());
+					premio = Double.parseDouble(map.get("PREMIO").toString());
+
+					ctaInve1 = n1Inve + "|" + n2Inve + "|" + n3Inve + "|" + n4Inve + "|" + monInve + "|";
+
+					double suma1 = valMercado + dxInt + premio;
+					if (totalAct != suma1) {
+						inveE01.add(ctaInve1 + totalAct + "|" + suma1 + "|");
+					}
+
+					ctaInve2 = n1Inve + "|" + n2Inve + "|" + n3Inve + "|" + n4Inve + "|" + monInve + "|"
+							+ formato.format(totalAct) + "|";
+					inveCtas.add(ctaInve2);
+
+					if ((n1Inve + n2Inve + n3Inve + n4Inve).equals("110010103")) {
+						if (afecInve.equals("01")) {
+							double suma2 = incXValRcs - incXValOp;
+							if ((incDelVal * 0.58) != suma2) {
+								inveE03.add(ctaInve1);
+							}
+						}
+						if (afecInve.equals("02")) {
+							if ((incDelVal * 0.3) != incXValRcs) {
+								inveE03.add(ctaInve1);
+							}
+						}
+						if (afecInve.equals("03")) {
+							if ((incDelVal * 0.3) != incXValRcs) {
+								inveE03.add(ctaInve1);
+							}
+						}
+					}
+
+				}
+
+				for (String cta : inveCtas) {
+					inveE02.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+
+				System.out.println("1 INVE: " + inveE01);
+				System.out.println("2 INVE: " + inveE02);
+				System.out.println("3 INVE: " + inveE03);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("INVEE01",indeCtas);
+				mapTotal.put("INVEE02",indeE06);
+				creacionSheetsArchivos("INVE", response, mapTotal, mapCatE );
+			}
+
+			logger.info("VALIDANDO ARCHIVO CCMP");
+
+			List<Map<String, Object>> datosCCMP = obtenerAllInfoCCMP(anioMes);
+			ArrayList<String> ctasCCMP1 = new ArrayList<>();
+			ArrayList<String> ctasCCMP2 = new ArrayList<>();
+			ArrayList<String> ctasCCMP3 = new ArrayList<>();
+			ArrayList<String> ccmpE01 = new ArrayList<>();
+			ArrayList<String> ccmpE02 = new ArrayList<>();
+			ArrayList<String> ccmpE03 = new ArrayList<>();
+
+			String n1Ccmp, n2Ccmp, n3Ccmp, n4Ccmp, monCcmp, ctaCcmp1, ctaCcmp2, ctaCcmp3;
+			double capitalContable, ixvInmNeto, ixvInmNetoRT;
+//			ArrayList<String> error1 = null;
+
+			if (datosCCMP.size() > 0) {
+				for (Map<String, Object> map : datosCCMP) {
+					n1Ccmp = map.get("NIVEL_1").toString();
+					n2Ccmp = map.get("NIVEL_2").toString();
+					n3Ccmp = map.get("NIVEL_3").toString();
+					n4Ccmp = map.get("NIVEL_4").toString();
+					monCcmp = map.get("MONEDA").toString();
+					capitalContable = Double.parseDouble(map.get("CAPITAL_CONTABLE").toString());
+					ixvInmNeto = Double.parseDouble(map.get("IXV_INM_NETO").toString());
+					ixvInmNetoRT = Double.parseDouble(map.get("IXV_INM_NETO_RT").toString());
+
+					ctaCcmp1 = n1Ccmp + "|" + n2Ccmp + "|" + n3Ccmp + "|" + n4Ccmp + "|" + monCcmp + "|"
+							+ formato.format(capitalContable) + "|";
+					ctasCCMP1.add(ctaCcmp1);
+					ctaCcmp2 = n1Ccmp + "|" + n2Ccmp + "|" + n3Ccmp + "|" + n4Ccmp + "|" + monCcmp + "|"
+							+ formato.format(ixvInmNeto) + "|";
+					ctasCCMP2.add(ctaCcmp2);
+					ctaCcmp3 = n1Ccmp + "|" + n2Ccmp + "|" + n3Ccmp + "|" + n4Ccmp + "|" + monCcmp + "|"
+							+ formato.format(ixvInmNetoRT) + "|";
+					ctasCCMP3.add(ctaCcmp3);
+
+				}
+
+				for (String cta : ctasCCMP1) {
+					ccmpE01.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+				for (String cta : ctasCCMP2) {
+					ccmpE02.add(!(valCCMPInmu2.contains(cta)) ? "" : cta);
+				}
+				for (String cta : ctasCCMP3) {
+					ccmpE03.add(!(valCCMPInmu3.contains(cta)) ? "" : cta);
+				}
+
+				System.out.println("1 CCMP: " + ccmpE01);
+				System.out.println("2 CCMP: " + ccmpE02);
+				System.out.println("3 CCMP: " + ccmpE03);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("CCMPE01",indeCtas);
+				mapTotal.put("CCMPE02",indeE06);
+				creacionSheetsArchivos("CCMP", response, mapTotal, mapCatE );
+
+//				error1 = validacionRR7.validacionCCMP(ctasCCMP, capitalContable, datosCMBG); // CCMPE01 (bien)						
+			}
+
+			logger.info("VALIDANDO ARCHIVO DEUD");
+			List<Map<String, Object>> datosDEUD = obtenerAllInfoDEUD(anioMes);
+			List<Map<String, Object>> valDeudFopa = INNERFopaDeud(anioMes);
+			ArrayList<String> deudCtas = new ArrayList<String>();
+			ArrayList<String> fopaCtas = new ArrayList<String>();
+			ArrayList<String> deudE01 = new ArrayList<String>();
+			ArrayList<String> deudE02 = new ArrayList<String>();
+			ArrayList<String> deudE03 = new ArrayList<String>();
+
+			String n1Deud, n2Deud, n3Deud, n4Deud, monDeud, afecDeud, ctaDeud1, ctaDeud2, ctaDeud3, n1Fopa, n2Fopa,
+					n3Fopa, n4Fopa, monFopa;
+			double primaTotal, primaAfecto, valFopa;
+
+			if (datosDEUD.size() > 0) {
+
+				for (Map<String, Object> map : valDeudFopa) {
+					n1Fopa = map.get("NIVEL_1").toString();
+					n2Fopa = map.get("NIVEL_2").toString();
+					n3Fopa = map.get("NIVEL_3").toString();
+					n4Fopa = map.get("NIVEL_4").toString();
+					monFopa = map.get("MONEDA").toString();
+					valFopa = Double.parseDouble(map.get("SALDO").toString());
+
+					ctaDeud2 = n1Fopa + "|" + n2Fopa + "|" + n3Fopa + "|" + n4Fopa + "|" + monFopa + "|"
+							+ formato.format(valFopa) + "|";
+					fopaCtas.add(ctaDeud2);
+				}
+
+				for (Map<String, Object> map : datosDEUD) {
+					n1Deud = map.get("NIVEL_1").toString();
+					n2Deud = map.get("NIVEL_2").toString();
+					n3Deud = map.get("NIVEL_3").toString();
+					n4Deud = map.get("NIVEL_4").toString();
+					monDeud = map.get("MONEDA").toString();
+					afecDeud = map.get("AFECTACION").toString();
+					primaTotal = Double.parseDouble(map.get("PRIMAS_POR_COBRAR_TOTAL").toString());
+					primaAfecto = Double.parseDouble(map.get("PRIMAS_POR_COBRAR_AFECTO").toString());
+
+					ctaDeud1 = n1Deud + "|" + n2Deud + "|" + n3Deud + "|" + n4Deud + "|" + monDeud + "|"
+							+ formato.format(primaTotal) + "|";
+					deudCtas.add(ctaDeud1);
+
+					if (afecDeud.equals("01")) {
+						ctaDeud3 = n1Deud + "|" + n2Deud + "|" + n3Deud + "|" + n4Deud + "|" + monDeud + "|"
+								+ formato.format(primaAfecto) + "|";
+						deudE02.add(ctaDeud3);
+					}
+
+				}
+
+				for (String cta : deudCtas) {
+					deudE01.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+
+				if (!fopaCtas.isEmpty()) {
+					for (String cta : fopaCtas) {
+						deudE03.add(!(deudE02.contains(cta)) ? "" : cta);
+					}
+				}
+
+				System.out.println("1 DEUD: " + deudE01);
+				System.out.println("2 DEUD: " + deudE03);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("DEUDE01",indeCtas);
+				mapTotal.put("DEUDE02",indeE06);
+				creacionSheetsArchivos("DEUD", response, mapTotal, mapCatE );
+			}
+
+			logger.info("VALIDANDO ARCHIVO OINV");
+			List<Map<String, Object>> datosOINV = obtenerAllInfoOINV(anioMes);
+			List<Map<String, Object>> valOinvInve = INNEROinvInve(anioMes);
+			ArrayList<String> oinvCtas = new ArrayList<String>();
+			ArrayList<String> inveCtasVal = new ArrayList<String>();
+			ArrayList<String> oinvE01 = new ArrayList<String>();
+			ArrayList<String> oinvE02 = new ArrayList<String>();
+
+			String n1Oinv, n2Oinv, n3Oinv, n4Oinv, monOinv, ctaOinv1, ctaOinv2;
+			double saldoCierreOinv, suma;
+
+			if (datosOINV.size() > 0) {
+
+				for (Map<String, Object> map : valOinvInve) {
+					n1Oinv = map.get("NIVEL_1").toString();
+					n2Oinv = map.get("NIVEL_2").toString();
+					n3Oinv = map.get("NIVEL_3").toString();
+					n4Oinv = map.get("NIVEL_4").toString();
+					monOinv = map.get("MONEDA").toString();
+					suma = Double.parseDouble(map.get("SUMA").toString());
+
+					ctaOinv2 = n1Oinv + "|" + n2Oinv + "|" + n3Oinv + "|" + n4Oinv + "|" + monOinv + "|"
+							+ formato.format(suma) + "|";
+					inveCtasVal.add(ctaOinv2);
+				}
+
+				for (Map<String, Object> map : datosOINV) {
+					n1Oinv = map.get("NIVEL_1").toString();
+					n2Oinv = map.get("NIVEL_2").toString();
+					n3Oinv = map.get("NIVEL_3").toString();
+					n4Oinv = map.get("NIVEL_4").toString();
+					monOinv = map.get("MONEDA").toString();
+					saldoCierreOinv = Double.parseDouble(map.get("SALDO_CIERRE").toString());
+
+					ctaOinv1 = n1Oinv + "|" + n2Oinv + "|" + n3Oinv + "|" + n4Oinv + "|" + monOinv + "|"
+							+ formato.format(saldoCierreOinv) + "|";
+					oinvCtas.add(ctaOinv1);
+				}
+
+				for (String cta : oinvCtas) {
+					oinvE01.add(!(ctasCMBG.contains(cta)) ? "" : cta);
+				}
+				if (!inveCtasVal.isEmpty()) {
+					for (String cta : inveCtasVal) {
+						oinvE02.add(!(deudE02.contains(cta)) ? "" : cta);
+					}
+				}
+
+				System.out.println("1 OINV: " + oinvE01);
+				System.out.println("1 OINV: " + oinvE02);
+				Map<String,List<String>> mapTotal = new HashMap<String,List<String>>();
+				mapTotal.put("OINVE01",indeCtas);
+				mapTotal.put("OINVE02",indeE06);
+				creacionSheetsArchivos("OINV", response, mapTotal, mapCatE );
+			}
+
+			logger.info("Validaciones Generadas");
+
+//			response.getCreationHelper().createFormulaEvaluator().evaluateAll();
+//			FileOutputStream excelFileOutPutStreamErrores = new FileOutputStream(
+//					aplicationContext.getResource("resources/files/carga/Excell.xlsx").getFile().getPath());
+//			response.write(excelFileOutPutStreamErrores);
+//			excelFileOutPutStreamErrores.flush();
+//			excelFileOutPutStreamErrores.close();
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			try {
+				response.write(bos);
+			} finally {
+				bos.close();
+			}
+			
+			byte[] bytes = bos.toByteArray();
+			insertValidacionesRR7(bytes, anioMes.split("\\-")[0], anioMes.split("\\-")[1] );
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Validaciones Generadas", bytes); 
+		} catch (Exception e) {
+			e.printStackTrace();
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, e.getMessage(), e.getCause());
+		}
+		return respuesta;
+	}
+
+	private int crearEliminarTablaFinal(String archivo) {
+		String query = "IF OBJECT_ID('TBL_VALIDACIONES_" + archivo + "') IS NOT NULL BEGIN DROP TABLE TBL_VALIDACIONES_"
+				+ archivo + " END;";
+		jdbcTemplate.execute(query);
+		return 1;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoCMBG() {
+		String query = "SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, CVEMONEDA, VALORES FROM CMBG";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoCCMP(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, SUM(CAPITAL_CONTABLE) AS CAPITAL_CONTABLE, "
+				+ "SUM(IXV_INM_NETO) AS IXV_INM_NETO, SUM(IXV_INM_NETO_RT) AS IXV_INM_NETO_RT "
+				+ "FROM CCMP WHERE NIVEL_1 = '300' AND NIVEL_2 = '00' AND NIVEL_3 = '00' AND NIVEL_4 = '00' AND "
+				+ "ANIOMES = '" + anioMes + "'" + " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoINMU(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION, SUM(CTO_HIST) AS CTO_HIST, SUM(DEPRECI_HI) AS DEPRECI_HI, "
+				+ "SUM(INCR_VAL) AS INCR_VAL, SUM(DEPRE_INC) AS DEPRE_INC, SUM(TOTAL_INMUEBLE) AS TOTAL_INMUEBLE, "
+				+ "SUM(SUPERAVIT_AFECTO_BI) AS SUPERAVIT_AFECTO_BI, SUM(SUPERAVIT_AFECTO_OP) AS SUPERAVIT_AFECTO_OP, "
+				+ "SUM(SUPERAVIT_AFECTO_RCS) AS SUPERAVIT_AFECTO_RCS, SUM(CAP_SUPERAVIT) AS CAP_SUPERAVIT, "
+				+ "SUM(PORCENTAJE_AFECT) AS PORCENTAJE_AFECT " + "FROM INMU WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION ";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoINDE(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, SUM(PRIMA_PAGADA_OPCIONES) AS PRIMA_PAGADA_OPCIONES, "
+				+ "SUM(APORT_GARANT_DERIVADOS) AS APORT_GARANT_DERIVADOS, SUM(NETO_COTIZACION) AS NETO_COTIZACION, "
+				+ "SUM(CTO_ADQ_POSICION_ACTIVA) AS CTO_ADQ_POSICION_ACTIVA, SUM(CTO_ADQ_POSICION_PASIVA) AS CTO_ADQ_POSICION_PASIVA, "
+				+ "SUM(NETO_ADQUISICION) AS NETO_ADQUISICION " + "FROM INDE WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoBASE(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, SUM(RSVA_TOT) AS RSVA_TOT, SUM(POR_CP) AS POR_CP "
+				+ "FROM BASE WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoCRED(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, TIPO_CREDITO, SUM(SALDO_CIERRE) AS SALDO_CIERRE, "
+				+ "SUM(CARTERA_VENCIDA) AS CARTERA_VENCIDA, SUM(RESERVA_PREVENTIVA) AS RESERVA_PREVENTIVA, "
+				+ "SUM(VAL_HIST_INICIAL) AS VAL_HIST_INICIAL, SUM(PAGO_CAPITAL) AS PAGO_CAPITAL, SUM(D_X_I) AS D_X_I "
+				+ "FROM CRED WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, TIPO_CREDITO";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoINVE(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION, SUM(D_X_INT) AS D_X_INT, SUM(TOTAL_ACT) AS TOTAL_ACT, "
+				+ "SUM(VAL_COT) AS VAL_COT, SUM(INC_DEL_VAL) AS INC_DEL_VAL, SUM(INC_X_VALUA_RCS) AS INC_X_VALUA_RCS, "
+				+ "SUM(INC_X_VALUA_OP) AS INC_X_VALUA_OP, SUM(PREMIO) AS PREMIO " + "FROM INVE WHERE ANIOMES = '"
+				+ anioMes + "'" + " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoDEUD(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION, SUM(PRIMAS_POR_COBRAR_TOTAL) AS PRIMAS_POR_COBRAR_TOTAL, "
+				+ "AFECTACION, SUM(PRIMAS_POR_COBRAR_AFECTO) AS PRIMAS_POR_COBRAR_AFECTO "
+				+ "FROM DEUD WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, AFECTACION";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> INNERFopaDeud(String anioMes) {
+		String query = "SELECT B.NIVEL_1 AS NIVEL_1, B.NIVEL_2 AS NIVEL_2, B.NIVEL_3 AS NIVEL_3, B.NIVEL_4 AS NIVEL_4, B.MONEDA AS MONEDA, "
+				+ "SUM(B.SALDO) AS SALDO FROM DEUD A "
+				+ "INNER JOIN FOPA B ON A.NIVEL_1 = B.NIVEL_1 AND A.NIVEL_2 = B.NIVEL_2 AND A.NIVEL_3 = B.NIVEL_3 AND "
+				+ "A.NIVEL_4 = B.NIVEL_4 AND A.MONEDA = B.MONEDA "
+				+ "WHERE A.AFECTACION = '01' AND B.AFECTACION = '01' AND A.ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY B.NIVEL_1, B.NIVEL_2, B.NIVEL_3, B.NIVEL_4, B.MONEDA";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> obtenerAllInfoOINV(String anioMes) {
+		String query = "SELECT NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA, SUM(SALDO_CIERRE) AS SALDO_CIERRE "
+				+ "FROM OINV WHERE ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private List<Map<String, Object>> INNEROinvInve(String anioMes) {
+		String query = "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, (A.SALDO_CIERRE + B.TOTAL_ACT) AS SUMA "
+				+ "FROM OINV A "
+				+ "INNER JOIN INVE B ON A.NIVEL_1 = B.NIVEL_1 AND A.NIVEL_2 = B.NIVEL_2 AND A.NIVEL_3 = B.NIVEL_3 AND A.NIVEL_4 = B.NIVEL_4 "
+				+ "AND A.MONEDA = B.MONEDA " + "WHERE A.ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, SALDO_CIERRE, TOTAL_ACT ";
+		List<Map<String, Object>> datos = jdbcTemplate.queryForList(query);
+		return datos;
+	}
+
+	private int validacionArchivos1(String archivo, String anioMes) {
+		String query = "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+				+ "IIF(SUM(A.SALDO) BETWEEN MAX(B.VALORES - 2) AND MAX(B.VALORES + 2), '', '" + archivo + "E01') AS ERROR_1, "
+				+ "SUM(A.SALDO) AS VALOR_" + archivo + ", SUM(B.VALORES) AS VALOR_CMBG "
+				+ "INTO TBL_VALIDACIONES_" + archivo + " FROM " + archivo + " A "
+				+ "INNER JOIN CMBG B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4  "
+				+ "AND A.MONEDA = B.CVEMONEDA " + "WHERE A.ANIOMES = '" + anioMes + "'"
+				+ " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, A.MONEDA ";
+		jdbcTemplate.execute(query);
+		return 1;
+	}
+
+	private int validacionArchivos2(String archivo) {
+		String query = "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+				+ "IIF(SUM(A.SALDO) BETWEEN MAX(B.VALORES - 2) AND MAX(B.VALORES + 2), '', '" + archivo + "E01') AS ERROR_1, "
+				+ "SUM(A.SALDO) AS VALOR_" + archivo + ", SUM(B.VALORES) AS VALOR_CMBG "
+				+ "INTO TBL_VALIDACIONES_" + archivo + " FROM " + archivo + " A "
+				+ "INNER JOIN CMBG B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4  "
+				+ "AND A.MONEDA = B.CVEMONEDA " + " GROUP BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, A.MONEDA ";
+		jdbcTemplate.execute(query);
+		return 1;
+	}
+
+	private int validacionArchivos4(String archivo) {
+		String query = "SELECT A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA, "
+				+ "IIF(SUM(A.SALDO) BETWEEN MAX(B.VALORES - 1) AND MAX(B.VALORES + 1), '', '" + archivo + "E01') AS ERROR_1, "
+				+ "SUM(A.SALDO) AS VALOR_" + archivo + ", SUM(B.VALORES) AS VALOR_CMER " 
+				+ "INTO TBL_VALIDACIONES_" + archivo + " FROM " + archivo + " A "
+				+ "INNER JOIN CMER B ON A.NIVEL_1 = B.NIVEL1 AND A.NIVEL_2 = B.NIVEL2 AND A.NIVEL_3 = B.NIVEL3 AND A.NIVEL_4 = B.NIVEL4 "
+				+ "AND A.OPERACION = B.OPERACION AND A.CVE_RAMO = B.RAMO AND A.CVE_SUBRAMO = B.SUBRAMO AND A.CVE_SUBSUBRAMO = B.SUBSUBRAMO "
+				+ "AND A.MONEDA = B.MONEDA " + "GROUP BY A.NIVEL_1, A.NIVEL_2, A.NIVEL_3, A.NIVEL_4, A.MONEDA ";
+		jdbcTemplate.execute(query);
+		return 1;
+	}
+
+	public void creacionSheetsArchivos(ArrayList<String> nombres, XSSFWorkbook woorkbook) {
+		for (String name : nombres) {
+			String query = "SELECT TB.NIVEL_1, TB.NIVEL_2, TB.NIVEL_3, TB.NIVEL_4, TB.MONEDA, TB.ERROR_1, CAT.MENSAJE_ERROR FROM TBL_VALIDACIONES_"
+					+ name + " TB" + " LEFT JOIN CAT_ERROR_ARCHIVOSRR7 CAT ON TB.ERROR_1 = CAT.CLAVE";
+			String[] tittles = { "NIVEL_1", "NIVEL_2", "NIVEL_3", "NIVEL_4", "MONEDA", "ERROR_1 COD", "DESCRIPCION" };
+			logger.info(query);
+			List<Map<String, Object>> rowsDat = jdbcTemplate.queryForList(query);
+			int numRow = 1;
+			if (rowsDat.size() != 0) {
+				XSSFSheet sheet = woorkbook.createSheet(name);
+				XSSFRow titulos = sheet.createRow(0);
+				int numCell = 0;
+				for (String dato : tittles) {
+					titulos.createCell(numCell).setCellValue(dato);
+					numCell++;
+				}
+				for (Iterator iterator = rowsDat.iterator(); iterator.hasNext();) {
+					XSSFRow row = sheet.createRow(numRow);
+					Map<String, Object> map = (Map<String, Object>) iterator.next();
+					row.createCell(0).setCellValue(map.get("NIVEL_1").toString());
+					row.createCell(1).setCellValue(map.get("NIVEL_2").toString());
+					row.createCell(2).setCellValue(map.get("NIVEL_3").toString());
+					row.createCell(3).setCellValue(map.get("NIVEL_4").toString());
+					row.createCell(4).setCellValue(map.get("MONEDA").toString());
+					row.createCell(5).setCellValue(map.get("ERROR_1").toString());
+					row.createCell(6)
+							.setCellValue(map.get("MENSAJE_ERROR") == null ? "" : map.get("MENSAJE_ERROR").toString());
+					numRow++;
+				}
+
+			}
+		}
+	}
+
+	public void creacionSheetsArchivos(String archivo, XSSFWorkbook woorkbook, Map<String, List<String>> entry, Map<String, String> mapCatE ) {
+		int numRow = 1;
+		XSSFSheet sheet = woorkbook.createSheet(archivo);
+		XSSFRow titulos = sheet.createRow(0);
+		int numCell = 0;
+		String[] tittles = { "NIVEL_1", "NIVEL_2", "NIVEL_3", "NIVEL_4", "MONEDA", "COD. ERROR", "DESCRIPCION" };
+		for (String dato : tittles) {
+			titulos.createCell(numCell).setCellValue(dato);
+			numCell++;
+		}
+		for(String key : entry.keySet()) {
+			List<String> actual = entry.get(key);
+			
+		if (actual.size() != 0) {
+			
+			
+			for (String fila : actual) {
+				if (fila != null && (!fila.isEmpty()) ) {
+					String registro[] = fila.split("\\|");
+					XSSFRow row = sheet.createRow(numRow);
+					row.createCell(0).setCellValue(registro[0]);
+					row.createCell(1).setCellValue(registro[1]);
+					row.createCell(2).setCellValue(registro[2]);
+					row.createCell(3).setCellValue(registro[3]);
+					row.createCell(4).setCellValue(registro[4]);
+					row.createCell(5).setCellValue(key);
+					row.createCell(6).setCellValue(mapCatE.get(key));
+					numRow++;
+				}
+			}
+		}
+		}
+		
+	}
+
+	public Map<String, String> getMapCatErroresArchivosRR7() {
+		Map<String,String> response = new HashMap<String,String>();
+		String query = "SELECT CLAVE, MENSAJE_ERROR FROM CAT_ERROR_ARCHIVOSRR7";
+		logger.info(query);
+		List<Map<String, Object>> rowsDat = jdbcTemplate.queryForList(query);
+		if (rowsDat.size() != 0) {
+			for (Iterator iterator = rowsDat.iterator(); iterator.hasNext();) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> map = (Map<String, Object>) iterator.next();
+				response.put(map.get("CLAVE").toString(), map.get("MENSAJE_ERROR").toString());
+			}
+		}
+		return response;
+	}
+	
+	public void insertValidacionesRR7(byte[] bytes, String anio, String mes) {
+		Date myDate = new Date();
+		String byteBase64 = Base64.getEncoder().encodeToString(bytes);
+		String fecha = new SimpleDateFormat("yyyy-MM-dd").format(myDate);
+		String query = "SELECT (IIF((SELECT ANIO FROM RR7ARCHIVOHISTORICO WHERE IDARCHIVO='30' AND MES='"+mes+"' AND ANIO='"+anio+"') IS NULL, 0 , 1))";
+		int existe = jdbcTemplate.queryForObject(query, Integer.class);
+		if(existe == 0) {
+			jdbcTemplate.update(
+				"INSERT INTO RR7ARCHIVOHISTORICO (FECHAREGISTRO, BASE64RR7, ANIO, IDARCHIVO, MES) VALUES (?, ?, ?, ?, ?)",
+				fecha, byteBase64, anio,  "30" ,mes );
+		}else {
+			String sql = "Update RR7ARCHIVOHISTORICO Set FECHAREGISTRO = ? ,BASE64RR7 = ? ,ANIO = ? ,MES = ? Where IDARCHIVO = ? AND ANIO= ? AND MES= ?";
+			jdbcTemplate.update(sql, fecha, byteBase64, anio ,mes, "30", anio ,mes);
+		}
+	}
+	
+	
+}

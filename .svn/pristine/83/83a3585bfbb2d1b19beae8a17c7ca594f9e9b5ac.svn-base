@@ -1,0 +1,11 @@
+package com.ws_rr7_generico.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.Fond;
+
+@Repository
+public interface FondDAO extends JpaRepository<Fond, Integer> {
+
+}

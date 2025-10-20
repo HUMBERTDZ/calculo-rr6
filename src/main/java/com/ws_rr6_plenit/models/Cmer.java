@@ -1,0 +1,210 @@
+package com.ws_rr6_plenit.models;
+
+import java.io.Serializable;
+import javax.persistence.*;
+
+
+/**
+ * The persistent class for the CMER database table.
+ * 
+ */
+@Entity
+@Table(name="CMER")
+@NamedQuery(name="Cmer.findAll", query="SELECT c FROM Cmer c")
+public class Cmer implements Serializable {
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@Column(name="CVE_GENERAL")
+	private String cgeGeneral;
+	
+	@Column(name="NIVEL1")
+	private String nivel1;
+
+	@Column(name="NIVEL2")
+	private String nivel2;
+
+	@Column(name="NIVEL3")
+	private String nivel3;
+
+	@Column(name="NIVEL4")
+	private String nivel4;
+	
+	@Column(name="MONEDA")
+	private String moneda;
+	
+	@Column(name="OPERACION")
+	private String operacion;
+
+	@Column(name="RAMO")
+	private String ramo;
+	
+	@Column(name="SUBRAMO")
+	private String subramo;
+
+	@Column(name="SUBSUBRAMO")
+	private String subsubramo;
+	
+	@Column(name="VALORES")
+	private double valores;
+	
+	@Column(name="CVE_NIVEL")
+	private String cveNivel;
+
+	@Column(name="CVE_OPERACION")
+	private String cveOperacion;
+	
+	@Column(name="SIGNO")
+	private String signo;
+	
+	@Column(name="RELACION")
+	private String relacion;
+	
+	@Column(name="CONCEPTO")
+	private String concepto;
+
+	@Column(name="DESCRIPCION")
+	private String descripcion;
+	
+	public Cmer() {
+	}
+	
+	public String getCgeGeneral() {
+		return cgeGeneral;
+	}
+
+
+	public void setCgeGeneral(String cgeGeneral) {
+		this.cgeGeneral = cgeGeneral;
+	}
+
+
+	public String getConcepto() {
+		return this.concepto;
+	}
+
+	public void setConcepto(String concepto) {
+		this.concepto = concepto;
+	}
+
+	public String getCveNivel() {
+		return this.cveNivel;
+	}
+
+	public void setCveNivel(String cveNivel) {
+		this.cveNivel = cveNivel;
+	}
+
+	public String getCveOperacion() {
+		return this.cveOperacion;
+	}
+
+	public void setCveOperacion(String cveOperacion) {
+		this.cveOperacion = cveOperacion;
+	}
+
+	public String getDescripcion() {
+		return this.descripcion;
+	}
+
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public String getMoneda() {
+		return this.moneda;
+	}
+
+	public void setMoneda(String moneda) {
+		this.moneda = moneda;
+	}
+
+	public String getNivel1() {
+		return this.nivel1;
+	}
+
+	public void setNivel1(String nivel1) {
+		this.nivel1 = nivel1;
+	}
+
+	public String getNivel2() {
+		return this.nivel2;
+	}
+
+	public void setNivel2(String nivel2) {
+		this.nivel2 = nivel2;
+	}
+
+	public String getNivel3() {
+		return this.nivel3;
+	}
+
+	public void setNivel3(String nivel3) {
+		this.nivel3 = nivel3;
+	}
+
+	public String getNivel4() {
+		return this.nivel4;
+	}
+
+	public void setNivel4(String nivel4) {
+		this.nivel4 = nivel4;
+	}
+
+	public String getOperacion() {
+		return this.operacion;
+	}
+
+	public void setOperacion(String operacion) {
+		this.operacion = operacion;
+	}
+
+	public String getRamo() {
+		return this.ramo;
+	}
+
+	public void setRamo(String ramo) {
+		this.ramo = ramo;
+	}
+
+	public String getRelacion() {
+		return this.relacion;
+	}
+
+	public void setRelacion(String relacion) {
+		this.relacion = relacion;
+	}
+
+	public String getSigno() {
+		return this.signo;
+	}
+
+	public void setSigno(String signo) {
+		this.signo = signo;
+	}
+
+	public String getSubramo() {
+		return this.subramo;
+	}
+
+	public void setSubramo(String subramo) {
+		this.subramo = subramo;
+	}
+
+	public String getSubsubramo() {
+		return this.subsubramo;
+	}
+
+	public void setSubsubramo(String subsubramo) {
+		this.subsubramo = subsubramo;
+	}
+
+	public double getValores() {
+		return this.valores;
+	}
+
+	public void setValores(double valores) {
+		this.valores = valores;
+	}
+
+}

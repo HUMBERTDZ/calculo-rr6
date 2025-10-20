@@ -1,0 +1,14 @@
+package com.ws_rr7_generico.services;
+
+import java.util.List;
+
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+
+public interface BaseLayoutRr7Service {
+	
+	List<BaseLayoutRr7> obtenerRegistros() ;
+
+
+	public int getExistDataBalanzaContableByAnioMes(int anio, String mes) ;
+
+}

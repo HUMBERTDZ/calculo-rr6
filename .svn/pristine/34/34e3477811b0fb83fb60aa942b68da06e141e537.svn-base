@@ -1,0 +1,244 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.CredDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cred;
+import com.ws_rr7_generico.models.Inmu;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.CREDService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class CREDServiceImpl implements CREDService {
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private CredDAO credDAO;
+	String Nivel1 = "0";
+	String Nivel2 = "0";
+	String Nivel3 = "0";
+	String Nivel4 = "0";
+	double Moneda = 0;
+	double Consecutiv = 0;
+	String Afectacion = "0";
+	String TipoCredito = "0";
+	double ValHistInicial = 0;
+	double SaldoCierre = 0;
+	String FechaAdqui = "0";
+	String PersonalidadJuridica = "0";
+	String RazonSocial = "0";
+	String PrimerNombre = "0";
+	String SegundoNombre = "0";				
+	String ApellidoPaterno = "0";
+	String ApellidoMaterno = "0";
+	String FechaVencimiento = "0";
+	double EstimCastigos = 0;
+	double DXI = 0;
+	double PagoCapital = 0;
+	double CarteraVencida = 0;
+	double PlazoInt = 0;
+	double TasaInt = 0;
+	String Garantia = "0";
+	double ValorGaran = 0;
+	double AvaluoFis = 0;
+	double ReservaPreventiva = 0;
+	String NivelFondos = "0";
+	String NumeroPolizaVida = "0";
+	String NumeroPolizaDanios = "0";
+	String TipoGarantiaCobertura = "0";
+	String Califoncpt = "0";
+	String CvePonderadorContraparte = "0";
+	String Califongaran = "0";
+	String CvePonderadorGarantia = "0";
+	double ValorConversionARiesgocpt = 0;
+	double ValorGaranCober = 0;
+	String PortaSegFlex = "0";
+	double TasaGaranti = 0;
+	String cadena = Nivel1.concat("|").concat(Nivel2).concat("|").concat(Nivel3).concat("|").concat(Nivel4).concat("|")
+			.concat(String.valueOf(Moneda)).concat("|").concat(String.valueOf(Consecutiv)).concat("|").concat(Afectacion).concat("|")
+			.concat(TipoCredito).concat("|").concat(String.valueOf(ValHistInicial)).concat("|").concat(String.valueOf(SaldoCierre)).concat("|")
+			.concat(FechaAdqui).concat("|").concat(PersonalidadJuridica).concat("|").concat(RazonSocial).concat("|")
+			.concat(PrimerNombre).concat("|").concat(SegundoNombre).concat("|").concat(ApellidoPaterno).concat("|")
+			.concat(ApellidoMaterno).concat("|").concat(FechaVencimiento).concat("|").concat(String.valueOf(EstimCastigos)).concat("|")
+			.concat(String.valueOf(DXI)).concat("|").concat(String.valueOf(PagoCapital)).concat("|").concat(String.valueOf(CarteraVencida)).concat("|")
+			.concat(String.valueOf(PlazoInt)).concat("|").concat(String.valueOf(TasaInt)).concat("|").concat(Garantia).concat("|")
+			.concat(String.valueOf(ValorGaran)).concat("|").concat(String.valueOf(AvaluoFis)).concat("|").concat(String.valueOf(ReservaPreventiva)).concat("|")
+			.concat(NivelFondos).concat("|").concat(NumeroPolizaVida).concat("|").concat(NumeroPolizaDanios).concat("|")
+			.concat(TipoGarantiaCobertura).concat("|").concat(Califoncpt).concat("|").concat(CvePonderadorContraparte).concat("|")
+			.concat(Califongaran).concat("|").concat(CvePonderadorGarantia).concat("|").concat(String.valueOf(ValorConversionARiesgocpt)).concat("|")
+			.concat(String.valueOf(ValorGaranCober)).concat("|").concat(PortaSegFlex).concat("|").concat(String.valueOf(TasaGaranti)).concat("|;"); 
+	
+	
+	@Override
+	public ArchivoRespuesta obtenerCRED(String nombre, String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtCred(nombre, anioMes));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+
+	public String GenerarTxtCred(String nombre, String anioMes) throws IOException {
+
+		String response = "";
+//		List<Cred> ListaCRED= credDAO.findAll(Sort.by("Nivel1").and(Sort.by("Nivel2").and(Sort.by("Nivel3").and(Sort.by("Nivel4"))
+//				.and(Sort.by("moneda")).and(Sort.by("consecutiv")))));
+
+		List<Cred> ListaCRED= credDAO.findByAnioMes(anioMes);
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaCRED != null && ListaCRED.size() != 0) {
+			for (Cred Lista : ListaCRED) {
+
+				Nivel1 = Lista.getNivel1();
+				Nivel2 = Lista.getNivel2();
+				Nivel3 = Lista.getNivel3();
+				Nivel4 = Lista.getNivel4();
+				Moneda = Lista.getMoneda();
+				int Mon = (int) Math.round(Moneda);
+				Consecutiv = Lista.getConsecutiv();
+				int Consecutivo = (int) Math.round(Consecutiv);
+				Afectacion = Lista.getAfectacion();
+				TipoCredito = Lista.getTipoCredito();
+				ValHistInicial = Lista.getValHistInicial();
+				SaldoCierre = Lista.getSaldoCierre();
+				FechaAdqui = Lista.getFechaAdqui();
+				PersonalidadJuridica = Lista.getPersonalidadJuridica();
+				RazonSocial = Lista.getRazonSocial();
+				PrimerNombre = Lista.getPrimerNombre();
+				SegundoNombre = Lista.getSegundoNombre();				
+				ApellidoPaterno = Lista.getApellidoPaterno();
+				ApellidoMaterno = Lista.getApellidoMaterno();
+				FechaVencimiento = Lista.getFechaVencimiento();
+				EstimCastigos = Lista.getEstimCastigos();
+				DXI = Lista.getDXI();
+				PagoCapital = Lista.getPagoCapital();
+				CarteraVencida = Lista.getCarteraVencida();
+				PlazoInt = Lista.getPlazoInt();
+				TasaInt = Lista.getTasaInt();
+				Garantia = Lista.getGarantia();
+				ValorGaran = Lista.getValorGaran();
+				AvaluoFis = Lista.getAvaluoFis();
+				ReservaPreventiva = Lista.getReservaPreventiva();
+				NivelFondos = Lista.getNivelFondos();
+				NumeroPolizaVida = Lista.getNumeroPolizaVida();
+				NumeroPolizaDanios = Lista.getNumeroPolizaDanios();
+				TipoGarantiaCobertura = Lista.getTipoGarantiaCobertura();
+				Califoncpt = Lista.getCalifoncpt();
+				CvePonderadorContraparte = Lista.getCvePonderadorContraparte();
+				Califongaran = Lista.getCalifongaran();
+				CvePonderadorGarantia = Lista.getCvePonderadorGarantia();
+				ValorConversionARiesgocpt = Lista.getValorConversionARiesgocpt();
+				ValorGaranCober = Lista.getValorGaranCober();
+				PortaSegFlex = Lista.getPortaSegFlex();
+				TasaGaranti = Lista.getTasaGaranti();
+
+
+				bw.write(Nivel1.concat("|").concat(Nivel2).concat("|").concat(Nivel3).concat("|").concat(Nivel4).concat("|")
+						.concat(String.valueOf(Mon)).concat("|").concat(String.valueOf(Consecutivo)).concat("|").concat(Afectacion).concat("|")
+						.concat(TipoCredito).concat("|").concat(String.valueOf(ValHistInicial)).concat("|").concat(String.valueOf(SaldoCierre)).concat("|")
+						.concat(FechaAdqui).concat("|").concat(PersonalidadJuridica).concat("|").concat(RazonSocial).concat("|")
+						.concat(PrimerNombre).concat("|").concat(SegundoNombre).concat("|").concat(ApellidoPaterno).concat("|")
+						.concat(ApellidoMaterno).concat("|").concat(FechaVencimiento).concat("|").concat(String.valueOf(EstimCastigos)).concat("|")
+						.concat(String.valueOf(DXI)).concat("|").concat(String.valueOf(PagoCapital)).concat("|").concat(String.valueOf(CarteraVencida)).concat("|")
+						.concat(String.valueOf(PlazoInt)).concat("|").concat(String.valueOf(TasaInt)).concat("|").concat(Garantia).concat("|")
+						.concat(String.valueOf(ValorGaran)).concat("|").concat(String.valueOf(AvaluoFis)).concat("|").concat(String.valueOf(ReservaPreventiva)).concat("|")
+						.concat(NivelFondos).concat("|").concat(NumeroPolizaVida).concat("|").concat(NumeroPolizaDanios).concat("|")
+						.concat(TipoGarantiaCobertura).concat("|").concat(Califoncpt).concat("|").concat(CvePonderadorContraparte).concat("|")
+						.concat(Califongaran).concat("|").concat(CvePonderadorGarantia).concat("|").concat(String.valueOf(ValorConversionARiesgocpt)).concat("|")
+						.concat(String.valueOf(ValorGaranCober)).concat("|").concat(PortaSegFlex).concat("|").concat(String.valueOf(TasaGaranti)).concat("|;"));
+				bw.newLine();
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo CRED creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public String saveList(List<Cred> lista) {
+		credDAO.saveAll(lista);
+		return "ok";
+	}
+
+	@Override
+	public ResponseMessage updateCred(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Cred> getCred = credDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Cred cred: getCred) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> producer.getCtaQtoNivNvoCat().concat(""+producer.getTipoMoneda()).
+	                		equals(cred.getNivel1()+cred.getNivel2()+cred.getNivel3()+cred.getNivel4()+cred.getMoneda())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				cred.setPlazoInt((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				cred.setPlazoInt(0);
+			}			
+		}
+		if (credDAO.saveAll(getCred) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Cred actualizado ", null);
+		}		
+		return respuesta;
+	}
+	
+	@Override
+	public boolean getExistRecords(String anioMes) {
+
+		boolean existenRegistros = false;
+		
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM CRED WHERE ANIOMES = '" + anioMes + "';";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =   rowSet.getInt("EXISTEN_REGISTROS") == 1 ? true : false ;
+		}
+		logger.info("existenRegistros " + existenRegistros);
+		return existenRegistros;
+	}
+
+
+}

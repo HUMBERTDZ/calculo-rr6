@@ -1,0 +1,18 @@
+package com.ws_rr7_generico.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.Inmu;
+
+@Repository
+public interface InmuDAO extends JpaRepository<Inmu, Integer>{
+	
+	@Query(value = "SELECT * FROM INMU WHERE ANIOMES = :anioMes ORDER BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA", nativeQuery = true)
+	List<Inmu> findByAnioMes(@Param("anioMes") String anioMes);
+	
+}

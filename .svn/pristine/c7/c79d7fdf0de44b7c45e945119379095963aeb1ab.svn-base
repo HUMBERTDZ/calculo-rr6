@@ -1,0 +1,1195 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.ws_rr7_generico.dao.CmbgDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cmbg;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.CMBGService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class CMBGServiceImpl implements CMBGService {
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private CmbgDAO cmbgDAO;
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	String nivel1 = "0",nivel2 = "0",nivel3 = "0",nivel4 = "0",moneda = "0";
+	String valores = "";
+	String cadena =	nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+					.concat(moneda).concat("|").concat(String.valueOf(valores)).concat("|;");
+
+	@Override
+	public ArchivoRespuesta obtenerCMBG(String nombre) throws IOException {
+
+		// **ejecucion 100
+		actualizar110();
+		// **ejecucion 200
+		actualizar270();
+		actualizar260();
+		actualizar250();
+		actualizar240();
+		actualizar230();
+		actualizar220();
+		actualizar215();
+		actualizar214();
+		actualizar213();
+		actualizar212();
+		actualizar211();
+		actualizar210();
+		actualizar200();
+		// **ejecucion 300
+		actualizar300();
+		// **ejecucion 400
+		actualizar416();
+		actualizar415();
+		actualizar414();
+		actualizar413();
+		actualizar412();
+		actualizar411();
+		actualizar410();
+		actualizar409();
+		actualizar408();
+		actualizar407();
+		actualizar406();
+		actualizar405();
+		actualizar404();
+		actualizar403();
+		actualizar402();
+		actualizar401();
+		actualizar400();
+		logger.info("FIN ACTUALIZACIONES CMBG");	
+		
+		cmbgDAO.updateValoresNulos();
+		
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtCmbg(nombre));
+		ar.setNombreArchivo(nombre);
+		return ar;
+
+	}
+
+	public String GenerarTxtCmbg(String nombre) throws IOException {
+
+		String response = "";
+		List<Cmbg> ListaCMBG = cmbgDAO.findAll(Sort.by("nivel1").and(Sort.by("nivel2").and(Sort.by("nivel3").and(Sort.by("nivel4").and(Sort.by("cvemoneda"))))));
+		System.out.println("ListaCMBG " + ListaCMBG.size() );
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaCMBG != null && ListaCMBG.size() != 0) {
+			for (Cmbg Lista : ListaCMBG) {
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getCvemoneda();
+				valores = Lista.getValores();
+				
+				valores = valores == null ? "0.00" : valores; 
+				
+				if (!valores.trim().equals("0.00")) {					
+					bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+							.concat(moneda).concat("|").concat(String.format("%.2f",Float.parseFloat(valores))).concat("|;"));					
+					bw.newLine();
+				}
+			}
+			logger.info("EL ARCHIVO CMBG SE LLENO CORRECTAMENTE");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			logger.info("EL ARCHIVO CMBG ES NULO O VACIO");
+		}
+		bw.close();
+		fw.close();
+		logger.info("ARCHIVO TXT DE REPORTE CMBG CREADO CORRECTAMENTE");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	public void actualizar110() {
+		System.out.println("entro a actualizar 110");
+		try {
+			cmbgDAO.update_100_1();
+			cmbgDAO.update_100_2();
+			cmbgDAO.update_100_3();
+			cmbgDAO.update_100_4();
+			cmbgDAO.update_100_5();
+			cmbgDAO.update_100_6();
+			cmbgDAO.update_100_7();
+			cmbgDAO.update_100_8();
+			cmbgDAO.update_100_9();
+			cmbgDAO.update_100_10();
+			cmbgDAO.update_100_11();
+			cmbgDAO.update_100_12();
+			cmbgDAO.update_100_13();
+			cmbgDAO.update_100_14();
+			cmbgDAO.update_100_15();
+			cmbgDAO.update_100_16();
+			cmbgDAO.update_100_17();
+			cmbgDAO.update_100_18();
+			cmbgDAO.update_100_19();
+			cmbgDAO.update_100_20();
+			cmbgDAO.update_100_21();
+			cmbgDAO.update_100_22();
+			cmbgDAO.update_100_23();
+			cmbgDAO.update_100_24();
+			cmbgDAO.update_100_25();
+			cmbgDAO.update_100_26();
+			cmbgDAO.update_100_27();
+			cmbgDAO.update_100_28();
+			cmbgDAO.update_100_29();
+			cmbgDAO.update_100_30();
+			cmbgDAO.update_100_31();
+			cmbgDAO.update_100_32();
+			cmbgDAO.update_100_33();
+			cmbgDAO.update_100_34();
+			cmbgDAO.update_100_35();
+			cmbgDAO.update_100_36();
+			cmbgDAO.update_100_37();
+			cmbgDAO.update_100_38();
+			cmbgDAO.update_100_39();
+			cmbgDAO.update_100_40();
+			cmbgDAO.update_100_41();
+			cmbgDAO.update_100_42();
+			cmbgDAO.update_100_43();
+			cmbgDAO.update_100_44();
+			cmbgDAO.update_100_45();
+			cmbgDAO.update_100_46();
+			cmbgDAO.update_100_47();
+			cmbgDAO.update_100_48();
+			cmbgDAO.update_100_49();
+			cmbgDAO.update_100_50();
+			cmbgDAO.update_100_51();
+			cmbgDAO.update_100_52();
+			cmbgDAO.update_100_53();
+			cmbgDAO.update_100_54();
+			cmbgDAO.update_100_55();
+			cmbgDAO.update_100_56();
+			cmbgDAO.update_100_57();
+			cmbgDAO.update_100_58();
+			cmbgDAO.update_100_59();
+			cmbgDAO.update_100_60();
+			cmbgDAO.update_100_61();
+			cmbgDAO.update_100_62();
+			cmbgDAO.update_100_63();
+			cmbgDAO.update_100_64();
+			cmbgDAO.update_100_65();
+			cmbgDAO.update_100_66();
+			cmbgDAO.update_100_67();
+			cmbgDAO.update_100_68();
+			cmbgDAO.update_100_69();
+			cmbgDAO.update_100_70();
+			cmbgDAO.update_100_71();
+			cmbgDAO.update_100_72();
+			cmbgDAO.update_100_73();
+			cmbgDAO.update_100_74();
+			cmbgDAO.update_100_75();
+			cmbgDAO.update_100_76();
+			cmbgDAO.update_100_77();
+			cmbgDAO.update_100_78();
+			cmbgDAO.update_100_79();
+			cmbgDAO.update_100_80();
+			cmbgDAO.update_100_81();
+			cmbgDAO.update_100_82();
+			cmbgDAO.update_100_83();
+			cmbgDAO.update_100_84();
+			cmbgDAO.update_100_85();
+			cmbgDAO.update_100_86();
+			cmbgDAO.update_100_87();
+			cmbgDAO.update_100_88();
+			cmbgDAO.update_100_89();
+			cmbgDAO.update_100_90();
+			cmbgDAO.update_100_91();
+			cmbgDAO.update_100_92();
+			cmbgDAO.update_100_93();
+			cmbgDAO.update_100_94();
+			cmbgDAO.update_100_95();
+			cmbgDAO.update_100_96();
+			cmbgDAO.update_100_97();
+			cmbgDAO.update_100_98();
+			cmbgDAO.update_100_99();
+			cmbgDAO.update_100_100();
+			cmbgDAO.update_100_101();
+			cmbgDAO.update_100_102();
+			cmbgDAO.update_100_103();
+			cmbgDAO.update_100_104();
+			cmbgDAO.update_100_105();
+			cmbgDAO.update_100_106();
+			cmbgDAO.update_100_107();
+			cmbgDAO.update_100_108();
+			cmbgDAO.update_100_109();
+			cmbgDAO.update_100_110();
+			cmbgDAO.update_100_111();
+			cmbgDAO.update_100_112();
+			cmbgDAO.update_100_113();
+			cmbgDAO.update_100_114();
+			cmbgDAO.update_100_115();
+			cmbgDAO.update_100_116();
+			cmbgDAO.update_100_117();
+			cmbgDAO.update_100_118();
+			cmbgDAO.update_100_119();
+			cmbgDAO.update_100_120();
+			cmbgDAO.update_100_120_1();
+			cmbgDAO.update_100_120_2();
+			cmbgDAO.update_100_120_3();
+			cmbgDAO.update_100_121();
+			cmbgDAO.update_100_122();
+			cmbgDAO.update_100_123();
+			cmbgDAO.update_100_124();
+			cmbgDAO.update_100_125();
+			cmbgDAO.update_100_126();
+			cmbgDAO.update_100_127();
+			cmbgDAO.update_100_128();
+			cmbgDAO.update_100_129();
+			cmbgDAO.update_100_130();
+			cmbgDAO.update_100_130_1();
+			cmbgDAO.update_100_131();
+			cmbgDAO.update_100_132();
+			cmbgDAO.update_100_133();
+			cmbgDAO.update_100_134();
+			cmbgDAO.update_100_135();
+			cmbgDAO.update_100_136();
+			cmbgDAO.update_100_137();
+			cmbgDAO.update_100_138();
+			cmbgDAO.update_100_139();
+			cmbgDAO.update_100_140();
+			cmbgDAO.update_100_141();
+			cmbgDAO.update_100_142();
+			cmbgDAO.update_100_143();
+			cmbgDAO.update_100_144();
+			cmbgDAO.update_100_145();
+			cmbgDAO.update_100_146();
+			cmbgDAO.update_100_147();
+			cmbgDAO.update_100_148();
+			cmbgDAO.update_100_149();
+			cmbgDAO.update_100_150();
+			cmbgDAO.update_100_151();
+			cmbgDAO.update_100_152();
+			cmbgDAO.update_100_153();
+			cmbgDAO.update_100_154();
+			cmbgDAO.update_100_155();
+			cmbgDAO.update_100_156();
+			cmbgDAO.update_100_157();
+			cmbgDAO.update_100_158();
+			cmbgDAO.update_100_159();
+			cmbgDAO.update_100_160();
+			cmbgDAO.update_100_161();
+			cmbgDAO.update_100_162();
+			cmbgDAO.update_100_163();
+			cmbgDAO.update_100_164();
+			cmbgDAO.update_100_165();
+			cmbgDAO.update_100_166();
+			cmbgDAO.update_100_167();
+			cmbgDAO.update_100_168();
+			cmbgDAO.update_100_169();
+			cmbgDAO.update_100_170();
+			cmbgDAO.update_100_171();
+			cmbgDAO.update_100_172();
+			cmbgDAO.update_100_173();
+			cmbgDAO.update_100_174();
+			cmbgDAO.update_100_175();
+			cmbgDAO.update_100_176();
+			cmbgDAO.update_100_177();
+			cmbgDAO.update_100_178();
+			cmbgDAO.update_100_179();
+			cmbgDAO.update_100_180();
+			cmbgDAO.update_100_181();
+			cmbgDAO.update_100_182();
+			cmbgDAO.update_100_183();
+			cmbgDAO.update_100_184();
+			cmbgDAO.update_100_185();
+			cmbgDAO.update_100_186();
+			cmbgDAO.update_100_186();
+			cmbgDAO.update_100_187();
+			cmbgDAO.update_100_188();
+			cmbgDAO.update_100_189();
+			cmbgDAO.update_100_190();
+			cmbgDAO.update_100_191();
+			cmbgDAO.update_100_192();
+			cmbgDAO.update_100_193();
+			cmbgDAO.update_100_194();
+			cmbgDAO.update_100_195();
+			cmbgDAO.update_100_196();
+			cmbgDAO.update_100_197();
+			cmbgDAO.update_100_198();
+			cmbgDAO.update_100_199();
+			cmbgDAO.update_100_200();
+			cmbgDAO.update_100_201();
+			cmbgDAO.update_100_202();
+			cmbgDAO.update_100_203();
+			cmbgDAO.update_100_204();
+			cmbgDAO.update_100_205();
+			cmbgDAO.update_100_206();
+			cmbgDAO.update_100_207();
+			cmbgDAO.update_100_208();
+			cmbgDAO.update_100_209();
+			cmbgDAO.update_100_210();
+			cmbgDAO.update_100_211();
+			cmbgDAO.update_100_212();
+			cmbgDAO.update_100_213();
+			cmbgDAO.update_100_214();
+			cmbgDAO.update_100_215();
+			cmbgDAO.update_100_216();
+			
+			cmbgDAO.update_100_0_10();
+			cmbgDAO.update_100_0_20();
+			cmbgDAO.update_100_0_30();
+			cmbgDAO.update_100_0();
+			
+
+			System.out.println("Actualizacion 110 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+
+		}
+
+	}
+
+	public void actualizar300() {
+		System.out.println("entro a actualizar 300");
+		try {
+			cmbgDAO.update_300_1();
+			cmbgDAO.update_300_2();
+			cmbgDAO.update_300_3();
+			cmbgDAO.update_300_4();
+			cmbgDAO.update_300_5();
+			cmbgDAO.update_300_6();
+			cmbgDAO.update_300_7();
+			cmbgDAO.update_300_8();
+			cmbgDAO.update_300_9();
+			cmbgDAO.update_300_10();
+			cmbgDAO.update_300_11();
+			cmbgDAO.update_300_12();
+			cmbgDAO.update_300_13();
+			cmbgDAO.update_300_14();
+			cmbgDAO.update_300_15();
+			cmbgDAO.update_300_16();
+			cmbgDAO.update_300_17();
+			cmbgDAO.update_300_18();
+			cmbgDAO.update_300_19();
+			cmbgDAO.update_300_20();
+			cmbgDAO.update_300_21();
+			cmbgDAO.update_300_22();
+			cmbgDAO.update_300_23();
+			cmbgDAO.update_300_24();
+			cmbgDAO.update_300_25();
+			cmbgDAO.update_300_26();
+			cmbgDAO.update_300_27();
+			cmbgDAO.update_300_28();
+			cmbgDAO.update_300_29();
+			cmbgDAO.update_300_30();
+			cmbgDAO.update_300_31();
+			cmbgDAO.update_300_32();
+			cmbgDAO.update_300_33();
+			cmbgDAO.update_300_34();
+			cmbgDAO.update_300_35();
+			cmbgDAO.update_300_36();
+			cmbgDAO.update_300_37();
+			cmbgDAO.update_300_38();
+			cmbgDAO.update_300_39();
+			cmbgDAO.update_300_40();
+			cmbgDAO.update_300_41();
+			cmbgDAO.update_300_42();
+			cmbgDAO.update_300_43();
+			cmbgDAO.update_300_44();
+			cmbgDAO.update_300_45();
+			cmbgDAO.update_300_46();
+			cmbgDAO.update_300_47();
+			cmbgDAO.update_300_48();
+			cmbgDAO.update_300_49();
+			cmbgDAO.update_300_50();
+			cmbgDAO.update_300_51();
+			cmbgDAO.update_300_52();
+			cmbgDAO.update_300_53();
+			cmbgDAO.update_300_54();
+			cmbgDAO.update_300_55();
+			cmbgDAO.update_300_56();
+			cmbgDAO.update_300_57();
+			cmbgDAO.update_300_58();
+			cmbgDAO.update_300_59();
+			cmbgDAO.update_300_60();
+			cmbgDAO.update_300_61();
+			cmbgDAO.update_300_62();
+			cmbgDAO.update_300_63();
+			cmbgDAO.update_300_64();
+			cmbgDAO.update_300_65();
+			cmbgDAO.update_300_66();
+			cmbgDAO.update_300_67();
+			cmbgDAO.update_300_68();
+			cmbgDAO.update_300_69();
+			cmbgDAO.update_300_70();
+			
+			cmbgDAO.update_300_0_10();
+			cmbgDAO.update_300_0_20();
+			cmbgDAO.update_300_0_30();
+			cmbgDAO.update_300_0_0();
+
+			System.out.println("Actualizacion 300 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+
+		}
+	}
+	
+	public void actualizar270() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_270_1();
+			cmbgDAO.update_270_2();
+			cmbgDAO.update_270_3();
+			cmbgDAO.update_270_4();
+			cmbgDAO.update_270_5();
+			cmbgDAO.update_270_6();
+			cmbgDAO.update_270_7();
+			cmbgDAO.update_270_8();
+			cmbgDAO.update_270_9();
+			cmbgDAO.update_270_10();
+			cmbgDAO.update_270_11();
+			cmbgDAO.update_270_12();
+			cmbgDAO.update_270_13();
+			cmbgDAO.update_270_14();
+			cmbgDAO.update_270_15();
+			cmbgDAO.update_270_16();
+			cmbgDAO.update_270_17();
+			cmbgDAO.update_270_18();
+			cmbgDAO.update_270_19();
+			cmbgDAO.update_270_20();
+			cmbgDAO.update_270_21();
+			cmbgDAO.update_270_22();
+			cmbgDAO.update_270_23();
+			cmbgDAO.update_270_24();
+			cmbgDAO.update_270_25();
+			cmbgDAO.update_270_26();
+			cmbgDAO.update_270_27();
+			cmbgDAO.update_270_28();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	
+	public void actualizar260() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_260_1();
+			cmbgDAO.update_260_2();
+			cmbgDAO.update_260_3();
+			cmbgDAO.update_260_4();
+			cmbgDAO.update_260_5();
+			cmbgDAO.update_260_6();
+			cmbgDAO.update_260_7();
+			cmbgDAO.update_260_8();
+			cmbgDAO.update_260_9();
+			cmbgDAO.update_260_10();
+			cmbgDAO.update_260_11();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar250() {
+		System.out.println("entro a actualizar 200");
+		try {
+			cmbgDAO.update_250_1();
+			System.out.println("Actualizacion 200 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	
+	public void actualizar240() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_240_1();
+			cmbgDAO.update_240_2();
+			cmbgDAO.update_240_3();
+			cmbgDAO.update_240_4();
+			cmbgDAO.update_240_5();
+			cmbgDAO.update_240_6();
+			cmbgDAO.update_240_7();
+			cmbgDAO.update_240_8();
+			cmbgDAO.update_240_9();
+			cmbgDAO.update_240_10();
+			cmbgDAO.update_240_11();
+			cmbgDAO.update_240_12();
+			cmbgDAO.update_240_13();
+			cmbgDAO.update_240_14();
+			cmbgDAO.update_240_15();
+			cmbgDAO.update_240_16();
+			cmbgDAO.update_240_17();
+			cmbgDAO.update_240_18();
+			cmbgDAO.update_240_19();
+			cmbgDAO.update_240_20();
+			cmbgDAO.update_240_21();
+			cmbgDAO.update_240_22();
+			cmbgDAO.update_240_23();
+			cmbgDAO.update_240_24();
+			cmbgDAO.update_240_25();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	
+	public void actualizar230() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_230_1();
+			cmbgDAO.update_230_2();
+			cmbgDAO.update_230_3();
+			cmbgDAO.update_230_4();
+			cmbgDAO.update_230_5();
+			cmbgDAO.update_230_6();
+			cmbgDAO.update_230_7();
+			cmbgDAO.update_230_8();
+			cmbgDAO.update_230_9();
+			cmbgDAO.update_230_10();
+			cmbgDAO.update_230_11();
+			cmbgDAO.update_230_12();
+			cmbgDAO.update_230_13();
+			cmbgDAO.update_230_14();
+			cmbgDAO.update_230_15();
+			cmbgDAO.update_230_16();
+			cmbgDAO.update_230_17();
+			cmbgDAO.update_230_18();
+			cmbgDAO.update_230_19();
+			cmbgDAO.update_230_20();
+			cmbgDAO.update_230_21();
+			cmbgDAO.update_230_22();
+			cmbgDAO.update_230_23();
+			cmbgDAO.update_230_24();
+			cmbgDAO.update_230_25();
+			cmbgDAO.update_230_26();
+			cmbgDAO.update_230_27();
+			cmbgDAO.update_230_28();
+			cmbgDAO.update_230_29();
+			cmbgDAO.update_230_30();
+			cmbgDAO.update_230_31();
+			cmbgDAO.update_230_32();
+			cmbgDAO.update_230_33();
+			cmbgDAO.update_230_34();
+			cmbgDAO.update_230_35();
+			cmbgDAO.update_230_36();
+			cmbgDAO.update_230_37();
+			cmbgDAO.update_230_38();
+			cmbgDAO.update_230_39();
+			cmbgDAO.update_230_40();
+			cmbgDAO.update_230_41();
+			cmbgDAO.update_230_42();
+			cmbgDAO.update_230_43();
+			cmbgDAO.update_230_44();
+			cmbgDAO.update_230_45();
+			cmbgDAO.update_230_46();		
+		
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar220() {
+		System.out.println("entro a actualizar 200");
+		try {
+			cmbgDAO.update_220_1();
+			System.out.println("Actualizacion 200 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar215() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_215_1();
+			cmbgDAO.update_215_2();
+			cmbgDAO.update_215_3();
+			cmbgDAO.update_215_4();
+			cmbgDAO.update_215_5();
+			cmbgDAO.update_215_6();
+			cmbgDAO.update_215_7();
+			cmbgDAO.update_215_8();
+			cmbgDAO.update_215_9();
+			cmbgDAO.update_215_10();
+			cmbgDAO.update_215_11();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	
+	public void actualizar214() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_214_1();
+			cmbgDAO.update_214_2();
+			cmbgDAO.update_214_3();
+			cmbgDAO.update_214_4();
+			cmbgDAO.update_214_5();
+			cmbgDAO.update_214_6();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	
+	public void actualizar213() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_213_1();
+			cmbgDAO.update_213_2();
+			cmbgDAO.update_213_3();
+			cmbgDAO.update_213_4();
+			cmbgDAO.update_213_5();
+			cmbgDAO.update_213_6();
+			cmbgDAO.update_213_7();
+			
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar212() {
+		System.out.println("entro a actualizar 212");
+		try {
+			cmbgDAO.update_212_1();
+			cmbgDAO.update_212_2();
+			cmbgDAO.update_212_3();
+			cmbgDAO.update_212_4();
+			cmbgDAO.update_212_5();
+			cmbgDAO.update_212_6();
+			cmbgDAO.update_212_7();
+			cmbgDAO.update_212_8();
+			cmbgDAO.update_212_9();
+			cmbgDAO.update_212_10();
+			cmbgDAO.update_212_11();
+			cmbgDAO.update_212_12();
+			cmbgDAO.update_212_13();
+			cmbgDAO.update_212_14();
+			cmbgDAO.update_212_15();
+			cmbgDAO.update_212_16();
+			cmbgDAO.update_212_17();
+			cmbgDAO.update_212_18();
+			cmbgDAO.update_212_19();
+			cmbgDAO.update_212_20();
+			cmbgDAO.update_212_21();
+			cmbgDAO.update_212_22();
+			cmbgDAO.update_212_23();
+			cmbgDAO.update_212_24();
+			cmbgDAO.update_212_25();
+			cmbgDAO.update_212_26();
+			cmbgDAO.update_212_27();
+			cmbgDAO.update_212_28();
+			cmbgDAO.update_212_29();
+			cmbgDAO.update_212_30();
+			cmbgDAO.update_212_31();
+			cmbgDAO.update_212_32();
+			cmbgDAO.update_212_33();
+			cmbgDAO.update_212_34();
+			System.out.println("Actualizacion 212 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar211() {
+		System.out.println("entro a actualizar 211");
+		try {
+			cmbgDAO.update_211_1();
+			cmbgDAO.update_211_2();
+			cmbgDAO.update_211_3();
+			cmbgDAO.update_211_4();
+			cmbgDAO.update_211_5();
+			cmbgDAO.update_211_6();
+			cmbgDAO.update_211_7();
+			cmbgDAO.update_211_8();
+			cmbgDAO.update_211_9();
+			cmbgDAO.update_211_10();
+			cmbgDAO.update_211_11();
+			cmbgDAO.update_211_12();
+			cmbgDAO.update_211_13();
+			cmbgDAO.update_211_14();
+			cmbgDAO.update_211_15();
+			cmbgDAO.update_211_16();
+			cmbgDAO.update_211_17();
+			cmbgDAO.update_211_18();
+			cmbgDAO.update_211_19();
+			cmbgDAO.update_211_20();
+			cmbgDAO.update_211_21();
+			cmbgDAO.update_211_22();
+			cmbgDAO.update_211_23();
+			cmbgDAO.update_211_24();
+			cmbgDAO.update_211_25();
+			cmbgDAO.update_211_26();
+			cmbgDAO.update_211_27();
+			cmbgDAO.update_211_28();
+			cmbgDAO.update_211_29();
+			cmbgDAO.update_211_30();
+			cmbgDAO.update_211_31();
+			cmbgDAO.update_211_32();
+			cmbgDAO.update_211_33();
+			cmbgDAO.update_211_34();
+			cmbgDAO.update_211_35();
+			cmbgDAO.update_211_36();
+			cmbgDAO.update_211_37();
+			cmbgDAO.update_211_38();
+			cmbgDAO.update_211_39();
+			cmbgDAO.update_211_40();
+			cmbgDAO.update_211_41();
+			cmbgDAO.update_211_42();
+			cmbgDAO.update_211_43();
+			cmbgDAO.update_211_44();
+			cmbgDAO.update_211_45();
+			cmbgDAO.update_211_46();
+			cmbgDAO.update_211_47();
+			cmbgDAO.update_211_48();
+			cmbgDAO.update_211_49();
+			cmbgDAO.update_211_50();
+			cmbgDAO.update_211_51();
+			cmbgDAO.update_211_52();
+			cmbgDAO.update_211_53();
+			cmbgDAO.update_211_54();
+			cmbgDAO.update_211_55();
+			cmbgDAO.update_211_56();
+			cmbgDAO.update_211_57();
+			cmbgDAO.update_211_58();
+			cmbgDAO.update_211_59();
+			cmbgDAO.update_211_60();
+			cmbgDAO.update_211_61();
+			cmbgDAO.update_211_62();
+			cmbgDAO.update_211_63();
+			cmbgDAO.update_211_64();
+			cmbgDAO.update_211_65();
+			cmbgDAO.update_211_66();
+			cmbgDAO.update_211_67();
+			cmbgDAO.update_211_68();
+			cmbgDAO.update_211_69();
+			cmbgDAO.update_211_70();
+			cmbgDAO.update_211_71();
+			cmbgDAO.update_211_72();
+			cmbgDAO.update_211_73();
+			cmbgDAO.update_211_74();
+			cmbgDAO.update_211_75();
+			cmbgDAO.update_211_76();
+			cmbgDAO.update_211_77();
+			cmbgDAO.update_211_78();
+			cmbgDAO.update_211_79();
+			cmbgDAO.update_211_80();
+			cmbgDAO.update_211_81();
+			cmbgDAO.update_211_82();
+			cmbgDAO.update_211_83();
+			cmbgDAO.update_211_84();
+			cmbgDAO.update_211_85();
+			cmbgDAO.update_211_86();
+			cmbgDAO.update_211_87();
+			cmbgDAO.update_211_88();
+			cmbgDAO.update_211_89();
+			cmbgDAO.update_211_90();
+			cmbgDAO.update_211_91();
+			cmbgDAO.update_211_92();
+			
+			
+			System.out.println("Actualizacion 211 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar210() {
+		System.out.println("entro a actualizar 210");
+		try {
+			cmbgDAO.update_210_1();
+			
+			cmbgDAO.update_200_0_10();
+			cmbgDAO.update_200_0_20();
+			cmbgDAO.update_200_0_30();
+			cmbgDAO.update_200_0_00();
+			System.out.println("Actualizacion 210 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar200() {
+		System.out.println("entro a actualizar 200");
+		try {
+			cmbgDAO.update_200_1();
+			System.out.println("Actualizacion 200 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar416() {
+		System.out.println("entro a actualizar 416");
+		try {
+			cmbgDAO.update_416_1();
+			System.out.println("Actualizacion 416 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar415() {
+		System.out.println("entro a actualizar 415");
+		try {
+			cmbgDAO.update_415_1();
+			System.out.println("Actualizacion 415 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar414() {
+		System.out.println("entro a actualizar 414");
+		try {
+			cmbgDAO.update_414_1();
+			System.out.println("Actualizacion 414 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar413() {
+		System.out.println("entro a actualizar 413");
+		try {
+			cmbgDAO.update_413_1();
+			cmbgDAO.update_413_2();
+			cmbgDAO.update_413_3();
+			cmbgDAO.update_413_4();
+			cmbgDAO.update_413_5();
+			cmbgDAO.update_413_6();
+			cmbgDAO.update_413_7();
+			cmbgDAO.update_413_8();
+			System.out.println("Actualizacion 413 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar412() {
+		System.out.println("entro a actualizar 412");
+		try {
+			cmbgDAO.update_412_1();
+			cmbgDAO.update_412_2();
+			cmbgDAO.update_412_3();
+			cmbgDAO.update_412_4();
+			cmbgDAO.update_412_5();
+			cmbgDAO.update_412_6();
+			cmbgDAO.update_412_7();
+			cmbgDAO.update_412_8();
+			cmbgDAO.update_412_9();
+			cmbgDAO.update_412_10();
+			cmbgDAO.update_412_11();
+			cmbgDAO.update_412_12();
+			cmbgDAO.update_412_13();
+			cmbgDAO.update_412_14();
+			cmbgDAO.update_412_15();
+			cmbgDAO.update_412_16();
+			cmbgDAO.update_412_17();
+			cmbgDAO.update_412_18();
+			cmbgDAO.update_412_19();
+			cmbgDAO.update_412_20();
+			cmbgDAO.update_412_21();
+			cmbgDAO.update_412_22();
+			cmbgDAO.update_412_23();
+			cmbgDAO.update_412_24();
+			cmbgDAO.update_412_25();
+			cmbgDAO.update_412_26();
+			cmbgDAO.update_412_27();
+			cmbgDAO.update_412_28();
+			cmbgDAO.update_412_29();
+			cmbgDAO.update_412_30();
+			cmbgDAO.update_412_31();
+			System.out.println("Actualizacion 412 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar411() {
+		System.out.println("entro a actualizar 411");
+		try {
+			cmbgDAO.update_411_1();
+			System.out.println("Actualizacion 411 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar410() {
+		System.out.println("entro a actualizar 410");
+		try {
+			cmbgDAO.update_410_1();
+			System.out.println("Actualizacion 410 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar409() {
+		System.out.println("entro a actualizar 409");
+		try {
+			cmbgDAO.update_409_1();
+			cmbgDAO.update_409_2();
+			cmbgDAO.update_409_3();
+			cmbgDAO.update_409_4();
+			cmbgDAO.update_409_5();
+			cmbgDAO.update_409_6();
+			System.out.println("Actualizacion 409 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar408() {
+		System.out.println("entro a actualizar 408");
+		try {
+			cmbgDAO.update_408_1();
+			cmbgDAO.update_408_2();
+			cmbgDAO.update_408_3();
+			cmbgDAO.update_408_4();
+			cmbgDAO.update_408_5();
+			cmbgDAO.update_408_6();
+			System.out.println("Actualizacion 408 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar407() {
+		System.out.println("entro a actualizar 407");
+		try {
+			cmbgDAO.update_407_1();
+			cmbgDAO.update_407_2();
+			cmbgDAO.update_407_3();
+			cmbgDAO.update_407_4();
+			cmbgDAO.update_407_5();
+			cmbgDAO.update_407_6();
+
+			System.out.println("Actualizacion 407 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar406() {
+		System.out.println("entro a actualizar 406");
+		try {
+			cmbgDAO.update_406_1();
+			cmbgDAO.update_406_2();
+			cmbgDAO.update_406_3();
+			cmbgDAO.update_406_4();
+			cmbgDAO.update_406_5();
+			cmbgDAO.update_406_6();
+			System.out.println("Actualizacion 406 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar405() {
+		System.out.println("entro a actualizar 405");
+		try {
+			cmbgDAO.update_405_1();
+			cmbgDAO.update_405_2();
+			cmbgDAO.update_405_3();
+			cmbgDAO.update_405_4();
+			cmbgDAO.update_405_5();
+			cmbgDAO.update_405_6();
+					System.out.println("Actualizacion 405 completada");			 
+		}catch(Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+	public void actualizar404() {
+		System.out.println("entro a actualizar 404");
+		try {
+			cmbgDAO.update_404_1();
+			cmbgDAO.update_404_2();
+			cmbgDAO.update_404_3();
+			cmbgDAO.update_404_4();
+			cmbgDAO.update_404_5();
+			cmbgDAO.update_404_6();
+			cmbgDAO.update_404_7();
+			cmbgDAO.update_404_8();
+			cmbgDAO.update_404_9();
+			cmbgDAO.update_404_10();
+			cmbgDAO.update_404_11();
+			cmbgDAO.update_404_12();
+
+			System.out.println("Actualizacion 404 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar403() {
+		System.out.println("entro a actualizar 403");
+		try {
+			cmbgDAO.update_403_1();
+			cmbgDAO.update_403_2();
+			cmbgDAO.update_403_3();
+			cmbgDAO.update_403_4();
+			cmbgDAO.update_403_5();
+			cmbgDAO.update_403_6();
+
+			System.out.println("Actualizacion 403 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar402() {
+		System.out.println("entro a actualizar 402");
+		try {
+			cmbgDAO.update_402_1();
+			cmbgDAO.update_402_2();
+			cmbgDAO.update_402_3();
+			cmbgDAO.update_402_4();
+			cmbgDAO.update_402_5();
+			cmbgDAO.update_402_6();
+			cmbgDAO.update_402_7();
+			cmbgDAO.update_402_8();
+			cmbgDAO.update_402_9();
+
+			System.out.println("Actualizacion 402 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar401() {
+		System.out.println("entro a actualizar 401");
+		try {
+			cmbgDAO.update_401_1();
+			cmbgDAO.update_401_2();
+			cmbgDAO.update_401_3();
+			cmbgDAO.update_401_4();
+			cmbgDAO.update_401_5();
+			cmbgDAO.update_401_6();
+			cmbgDAO.update_401_7();
+			cmbgDAO.update_401_8();
+			System.out.println("Actualizacion 401 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	public void actualizar400() {
+		System.out.println("entro a actualizar 400");
+		try {
+			cmbgDAO.update_400_1();
+			cmbgDAO.update_400_0_10();
+			cmbgDAO.update_400_0_20();
+			cmbgDAO.update_400_0_30();
+			cmbgDAO.update_400_0_0();
+			
+			System.out.println("Actualizacion 400 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+			ex.printStackTrace();
+		}
+	}
+	
+	public void actualizar00() {
+		System.out.println("entro a actualizar 00");
+		try {
+			
+			cmbgDAO.update_00_10();
+			cmbgDAO.update_00_20();
+			cmbgDAO.update_00_30();
+			cmbgDAO.update_00_00();
+		
+			System.out.println("Actualizacion 00 completada");
+		} catch (Exception ex) {
+			System.out.println(ex.getCause());
+		}
+	}
+
+	@Override
+	public ResponseMessage updateCmbg1(String anioMes) {
+		ResponseMessage respuesta = null;
+		int anio = Integer.parseInt(anioMes.split("-")[0] );
+		int mes = Integer.parseInt(anioMes.split("-")[1] );
+		cmbgDAO.limpiarInfo();
+		logger.info(" limpiarInfo ");
+		cmbgDAO.copiarInfo(anio,mes);
+		logger.info(" copiarInfo ");
+		respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Cmbg actualizado ", 1);
+		return respuesta;
+
+	}
+	@Override
+	public ResponseMessage updateCmbg(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;
+		List<Cmbg> getCmbg = cmbgDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Cmbg cmbg: getCmbg) {
+			baseLayoutRr7Result = getBaseLayoutRr7//// CONECTAR SOLO CON NIVELES Y MONEDA 
+	                .stream().filter(producer -> (producer.getCtaQtoNivNvoCat()+""+producer.getTipoMoneda()).
+	                		equals(cmbg.getNivel1()+cmbg.getNivel2()+cmbg.getNivel3()+cmbg.getNivel4()+cmbg.getCvemoneda())).findFirst().orElse(null);
+
+			System.out.println(cmbg.getNivel1()+cmbg.getNivel2()+cmbg.getNivel3()+cmbg.getNivel4()+cmbg.getCvemoneda());
+			
+			if ((cmbg.getNivel1()+cmbg.getNivel2()+cmbg.getNivel3()+cmbg.getNivel4()+cmbg.getCvemoneda()).equalsIgnoreCase("41600000010")) {
+				System.out.println(baseLayoutRr7Result.toString() );
+				System.out.println("");
+			}
+			
+			if (baseLayoutRr7Result != null) {
+				cmbg.setValores(String.valueOf(baseLayoutRr7Result.getMontMonConsolidada()));
+			}else {
+				cmbg.setValores("0");
+			}		
+			
+			System.out.println("cmbg: "+cmbg.getValores()+"id: "+cmbg.getCveNivBal());
+
+		}
+		//cmbgDAO.saveAll(getCmbg) ;
+		respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Cmbg actualizado ", 1);
+		return respuesta;
+	}
+	public void updateCMBG(float valor,int id) {
+		System.out.println("cmbg: "+valor+"id: "+id);
+		String sql = "Update CMBG Set VALORES = ? Where CVE_NIV_BAL = ?";
+		jdbcTemplate.update(sql,valor,id);	
+	}
+	
+
+
+}

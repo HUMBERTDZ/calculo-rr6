@@ -1,0 +1,14 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface CSOCService {
+	ArchivoRespuesta obtenerCSOC(String nombre) throws IOException ;
+
+	ResponseMessage updateCsoc(List<BaseLayoutRr7> getBaseLayoutRr7);
+}

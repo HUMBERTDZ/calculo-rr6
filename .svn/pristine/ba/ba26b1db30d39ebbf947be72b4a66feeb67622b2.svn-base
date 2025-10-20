@@ -1,0 +1,114 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.CordDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cord;
+import com.ws_rr7_generico.models.Csoc;
+import com.ws_rr7_generico.services.CORDService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class CORDServiceImpl implements CORDService{
+	@Autowired
+	private CordDAO cordDAO;
+	String nivel1="0",nivel2="0",nivel3="0",nivel4="0",moneda="0",cve_ctas_or="0",sub_cve_ctas_or="0";
+	double saldo=0;
+	String cadena = nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(moneda).concat("|").concat(cve_ctas_or).concat("|").concat(sub_cve_ctas_or).concat("|")
+			.concat(String.valueOf(saldo)).concat("|;");
+
+	@Override
+	 public ArchivoRespuesta obtenerCORD(String nombre) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtCord(nombre));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+	public String GenerarTxtCord(String nombre) throws IOException {
+		String response = "";
+		List<Cord> ListaCord = cordDAO.findAll(Sort.by("nivel1").and(Sort.by("nivel2").and(Sort.by("nivel3").and(Sort.by("nivel4"))
+				.and(Sort.by("moneda")))));
+				
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaCord != null && ListaCord.size() != 0) {
+			for (Cord Lista : ListaCord) {
+
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				cve_ctas_or = Lista.getClaveCtasOrden();
+				sub_cve_ctas_or = Lista.getSubClaveCtasOrden();
+				saldo = Lista.getSaldo();
+				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(moneda).concat("|").concat(cve_ctas_or).concat("|").concat(sub_cve_ctas_or).concat("|")
+						.concat(String.valueOf(saldo)).concat("|;"));
+				bw.newLine();
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo CORD creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+	@Override
+	public ResponseMessage updateCord(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Cord> getCord = cordDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Cord cord: getCord) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> producer.getCtaQtoNivNvoCat().concat(""+producer.getTipoMoneda()+producer.getSubCtaCatAnt()).
+	                		equals(cord.getNivel1()+cord.getNivel2()+cord.getNivel3()+cord.getNivel4()+cord.getMoneda()+cord.getSubClaveCtasOrden())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				cord.setSaldo((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				cord.setSaldo(0);
+			}			
+		}
+		if (cordDAO.saveAll(getCord) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Cord actualizado ", 1);
+		}
+		
+		return respuesta;
+
+	}
+
+}

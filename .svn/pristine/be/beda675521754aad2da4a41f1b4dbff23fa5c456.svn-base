@@ -1,0 +1,205 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.ws_rr7_generico.dao.InmuDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Inmu;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.INMUService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class INMUServiceImpl implements INMUService {
+	@Autowired
+	private InmuDAO inmuDAO;
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	String nivel1 = "0",nivel2 = "0",nivel3 = "0",nivel4 = "0";
+	int moneda = 0;
+	String afectacion = "0",nivelFondos = "0",calle = "0",numero = "0",colonia = "0",cp = "0",entidad = "0",tipoInm = "0",clasifInm = "0",
+			fchAdq = "0",fchUltVal = "0",fchCapSv = "0",fchIniArren = "0",fchVenArren = "0",estatusPR = "0",fchIniCons = "0",portaSegFlex ="0";
+	double ctoHist = 0,depreciHi = 0,incrVal = 0,depreInc = 0,totalInmueble = 0,superavitAfecto = 0,capSuperavit = 0,gastosAn = 0,
+			rentasAn = 0,porcentajeAfect = 0,importeAfectoTotal = 0,tasaRdto = 0,valorFis = 0,valorRent = 0,valorComer = 0,tasaGaranti = 0,
+			superavitAfectoRcs = 0,superavitAfectoOp = 0,consecutiv = 0;
+	
+	String cadena =	nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(String.valueOf(moneda)).concat("|").concat(String.valueOf(consecutiv)).concat("|").concat(afectacion).concat("|")
+			.concat(nivelFondos).concat("|").concat(calle).concat("|").concat(numero).concat("|").concat(colonia).concat("|")
+			.concat(cp).concat("|").concat(entidad).concat("|").concat(tipoInm).concat("|").concat(clasifInm).concat("|")
+			.concat(fchAdq).concat("|").concat(fchUltVal).concat("|").concat(fchCapSv).concat("|").concat(fchIniArren).concat("|")
+			.concat(fchVenArren).concat("|").concat(estatusPR).concat("|").concat(fchIniCons).concat("|").concat(String.valueOf(ctoHist)).concat("|")
+			.concat(String.valueOf(depreciHi)).concat("|").concat(String.valueOf(incrVal)).concat("|").concat(String.valueOf(depreInc)).concat("|")
+			.concat(String.valueOf(totalInmueble)).concat("|").concat(String.valueOf(superavitAfecto)).concat("|").concat(String.valueOf(gastosAn)).concat("|")
+			.concat(String.valueOf(rentasAn)).concat("|").concat(String.valueOf(porcentajeAfect)).concat("|").concat(String.valueOf(importeAfectoTotal)).concat("|")
+			.concat(String.valueOf(tasaRdto)).concat("|").concat(String.valueOf(valorFis)).concat("|").concat(String.valueOf(valorRent)).concat("|")
+			.concat(String.valueOf(valorComer)).concat("|").concat(portaSegFlex).concat("|").concat(String.valueOf(tasaGaranti)).concat("|")
+			.concat(String.valueOf(superavitAfectoRcs)).concat("|").concat(String.valueOf(superavitAfectoOp)).concat("|;"); 
+
+	@Override
+	public ArchivoRespuesta obtenerINMU(String nombre, String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtInmu(nombre, anioMes));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+
+	public String GenerarTxtInmu(String nombre, String anioMes) throws IOException {
+		System.out.println("El año y mes en INMU: " + anioMes);
+		String response = "";
+		List<Inmu> ListaINMU = inmuDAO.findByAnioMes(anioMes);
+		logger.info("ls " + ListaINMU.size());
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaINMU != null && ListaINMU.size() != 0) {
+			for (Inmu Lista : ListaINMU) {
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				consecutiv = Lista.getConsecutiv();
+				int consecutivo = (int) Math.round(consecutiv);
+				afectacion = Lista.getAfectacion();
+				nivelFondos = Lista.getNivelFondos();
+				calle = Lista.getCalle();
+				numero = Lista.getNumero();
+				colonia = Lista.getColonia();
+				cp = Lista.getCp();
+				entidad = Lista.getEntidad();
+				tipoInm = Lista.getTipoInm();
+				clasifInm = Lista.getClasifInm();
+				fchAdq = Lista.getFchAdq();
+				fchUltVal = Lista.getFchUltVal();
+				fchCapSv = Lista.getFchCapSv();
+				fchIniArren = Lista.getFchIniArren();
+				String FIA = fchIniArren.replace("/", "");
+				fchVenArren = Lista.getFchVenArren();
+				String FVA = fchVenArren.replace("/", "");
+				estatusPR = Lista.getEstatusPR();
+				fchIniCons = Lista.getFchIniCons();
+				String FIC = fchIniCons.replace("/", "");
+				ctoHist = Lista.getCtoHist();
+				depreciHi = Lista.getDepreciHi();
+				incrVal = Lista.getIncrVal();
+				depreInc = Lista.getDepreInc();
+				totalInmueble = Lista.getTotalInmueble();
+				superavitAfecto = Lista.getSuperavitAfecto();
+				capSuperavit = Lista.getCapSuperavit();
+				gastosAn = Lista.getGastosAn();
+				rentasAn = Lista.getRentasAn();
+				porcentajeAfect = Lista.getPorcentajeAfect();
+				importeAfectoTotal = Lista.getImporteAfectoTotal();
+				tasaRdto = Lista.getTasaRdto();
+				valorFis = Lista.getValorFis();
+				valorRent = Lista.getValorRent();
+				valorComer = Lista.getValorComer();
+				portaSegFlex = Lista.getPortaSegFlex();
+				tasaGaranti = Lista.getTasaGaranti();
+				superavitAfectoRcs = Lista.getSuperavitAfectoRcs();
+				superavitAfectoOp = Lista.getSuperavitAfectoOp();				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(String.valueOf(moneda)).concat("|").concat(String.valueOf(consecutivo)).concat("|").concat(afectacion).concat("|")
+						.concat(nivelFondos).concat("|").concat(calle).concat("|").concat(numero).concat("|").concat(colonia).concat("|")
+						.concat(cp).concat("|").concat(entidad).concat("|").concat(tipoInm).concat("|").concat(clasifInm).concat("|")
+						.concat(fchAdq).concat("|").concat(fchUltVal).concat("|").concat(fchCapSv).concat("|").concat(FIA).concat("|")
+						.concat(FVA).concat("|").concat(estatusPR).concat("|").concat(FIC).concat("|").concat(String.valueOf(ctoHist)).concat("|")
+						.concat(String.valueOf(depreciHi)).concat("|").concat(String.valueOf(incrVal)).concat("|").concat(String.valueOf(depreInc)).concat("|")
+						.concat(String.valueOf(totalInmueble)).concat("|").concat(String.valueOf(superavitAfecto)).concat("|").concat(String.valueOf(capSuperavit)).concat("|").concat(String.valueOf(gastosAn)).concat("|")
+						.concat(String.valueOf(rentasAn)).concat("|").concat(String.valueOf(porcentajeAfect)).concat("|").concat(String.valueOf(importeAfectoTotal)).concat("|")
+						.concat(String.valueOf(tasaRdto)).concat("|").concat(String.valueOf(valorFis)).concat("|").concat(String.valueOf(valorRent)).concat("|")
+						.concat(String.valueOf(valorComer)).concat("|").concat(portaSegFlex).concat("|").concat(String.valueOf(tasaGaranti)).concat("|")
+						.concat(String.valueOf(superavitAfectoRcs)).concat("|").concat(String.valueOf(superavitAfectoOp)).concat("|;"));
+				bw.newLine();
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo INMU creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public String saveList(List<Inmu> lista) {
+		inmuDAO.saveAll(lista);
+		return "ok";
+	}
+
+	@Override
+	public ResponseMessage updateInmu(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Inmu> getInmu = inmuDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Inmu inmu: getInmu) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> producer.getCtaQtoNivNvoCat().concat(""+producer.getTipoMoneda()).
+	                		equals(inmu.getNivel1()+inmu.getNivel2()+inmu.getNivel3()+inmu.getNivel4()+inmu.getMoneda())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				inmu.setValorFis((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				inmu.setValorFis(0);
+			}			
+		}
+		if (inmuDAO.saveAll(getInmu) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Inmu actualizado ", null);
+		}		
+		return respuesta;
+	}
+	
+
+	@Override
+	public int getExistRecords(String anioMes) {
+
+		int existenRegistros = 0;
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM INMU WHERE ANIOMES = '" + anioMes + "';";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =  rowSet.getInt("EXISTEN_REGISTROS");
+		}
+
+		return existenRegistros;
+	}
+
+
+
+}

@@ -1,0 +1,746 @@
+package com.ws_rr6_plenit.models;
+
+import java.io.Serializable;
+import javax.persistence.*;
+
+@Entity
+@Table(name = "INVE")
+@NamedQuery(name = "Inve.findAll", query = "SELECT i FROM Inve i")
+public class Inve implements Serializable {
+
+	private static final long serialVersionUID = -1901459377059338356L;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "CVE_INVE")
+	private int cveInve;
+
+	@Column(name = "NIVEL_1")
+	private String nivel1;
+
+	@Column(name = "NIVEL_2")
+	private String nivel2;
+
+	@Column(name = "NIVEL_3")
+	private String nivel3;
+
+	@Column(name = "NIVEL_4")
+	private String nivel4;
+	
+	@Column(name = "MONEDA")
+	private Integer moneda;
+	
+	@Column(name = "CONSECUTIVO")
+	private Integer consecutiv;
+	
+	@Column(name = "CLASIFICACION")
+	private String clasificacion;
+	
+	@Column(name = "TIPO_ORG")
+	private String tipoOrg;
+	
+	@Column(name = "CVE_ORG")
+	private String cveOrg;
+	
+	@Column(name = "CONTRATO")
+	private String contrato;
+
+	@Column(name = "AFECTACION")
+	private Integer afectacion;
+
+	@Column(name = "ISIN")
+	private String isin;
+	
+	@Column(name = "PARAMETRIZ")
+	private String paramtriz;
+	
+	@Column(name = "CVE_EMISOR")
+	private String cveEmisor;
+	
+	@Column(name = "SERIE")
+	private String serie;
+	
+	@Column(name = "TIPO_VALOR")
+	private String tipoValor;
+	
+	@Column(name = "DESCRIPC")
+	private String descrip;
+	
+	@Column(name = "LIQUIDEZ")
+	private String liquidez;
+	
+	@Column(name = "FCH_EMI")
+	private String fchEmi;
+	
+	@Column(name = "FCH_ADQ")
+	private String fchAdq;
+
+	@Column(name = "FCH_VTO")
+	private String fchVto;
+	
+	@Column(name = "VALOR_NOM")
+	private Integer valorNom;
+	
+	@Column(name = "TITULOS")
+	private Integer titulos;
+
+	@Column(name = "CTO_ADQ")
+	private Integer ctoAdq;
+
+	@Column(name = "VAL_COT")
+	private Integer valMercado;
+	
+	@Column(name = "PRECIO_UNI")
+	private Integer precioUni;
+	
+	@Column(name = "TASA_VAL")
+	private Integer tasaVal;
+	
+	@Column(name = "INC_DEL_VAL")
+	private Integer incDelVal;
+	
+	@Column(name = "PERIOD_AMORT")
+	private Integer periodAmort;
+
+	@Column(name = "TASA_AMORT")
+	private Integer tasaAmort;
+	
+	@Column(name = "PREMIO")
+	private Integer premio;
+	
+	@Column(name = "PLAZO")
+	private Integer plazo;
+	
+	@Column(name = "MDA_BASE")
+	private String mdaBase;
+	
+	@Column(name = "CALIF")
+	private String calif;
+	
+	@Column(name = "IN_X_DEV")
+	private Integer inXDev;
+	
+	@Column(name = "PLAZO_CUPON")
+	private Integer plazoCupon;
+
+	@Column(name = "TASA_CUPO")
+	private Integer tasaCupo;
+	
+	@Column(name = "CVE_TAS_REF")
+	private String cveTasRef;
+	
+	@Column(name = "DETERIORO")
+	private Integer deterioro;
+	
+	@Column(name = "D_X_INT")
+	private Integer dXInt;
+
+	@Column(name = "TOTAL_ACT")
+	private Integer totalAct;
+
+	@Column(name = "TIPO_EMISORA")
+	private String tipoEmisora;
+	
+	@Column(name = "CALIFONCPT")
+	private String califoncpt;
+	
+	
+	
+	@Column(name = "CALCE")
+	private String calce;
+
+	@Column(name = "CALIFONGARAN")
+	private String califongaran;
+
+	@Column(name = "CVE_PONDERADOR_CONTRAPARTE")
+	private String cvePonderadorContraparte;
+
+	@Column(name = "DIV_X_COB")
+	private Integer divXCob;
+
+	@Column(name = "INC_X_VALUA_CBI")
+	private Integer incXValuaCbi;
+
+	@Column(name = "INC_X_VALUA_OP")
+	private Integer incXValuaOp;
+
+	@Column(name = "INC_X_VALUA_RCS")
+	private Integer incXValuaRcs;
+
+	@Column(name = "INT_LP_CUBRE_CP")
+	private String intLpCubreCp;
+
+	@Column(name = "NEGOCIABLE")
+	private String negociable;
+
+	@Column(name = "NIVEL_FONDOS")
+	private String nivelFondos;
+
+	@Column(name = "NOTA_ESTRUCTURADA")
+	private String notaEstructurada;
+	
+	@Column(name = "PORTA_SEG_FLEX")
+	private String portaSegFlex;
+
+	@Column(name = "REGLA_CUPON")
+	private String reglaCupon;
+
+	@Column(name = "TASA_GARANTI")
+	private Integer tasaGaranti;
+
+	@Column(name = "TASA_PACT_DER")
+	private Integer tasaPactDer;
+
+	@Column(name = "TII_AMP_DER")
+	private Integer tiiAmpDer;
+
+	@Column(name = "TIPO_GARANTIA_COBERTURA")
+	private String tipoGarantiaCobertura;
+
+	@Column(name = "TIPO_NOTA_ESTRUCTURADA")
+	private String tipoNotaEstructurada;
+	
+	@Column(name = "VALOR_CONVERSION_A_RIESGOCPT")
+	private Integer valorConversionARiesgocpt;
+
+	@Column(name = "VALOR_GARAN_COBER")
+	private Integer valorGaranCober;
+
+	@Column(name = "VE_PONDERADOR_GARANTIA")
+	private String vePonderadorGarantia;
+
+	@Column(name = "ANIOMES")
+	private String anioMes;
+
+	public Inve() {
+	}
+
+	public String getAnioMes() {
+		return anioMes;
+	}
+
+	public void setAnioMes(String anioMes) {
+		this.anioMes = anioMes;
+	}
+
+	public Integer getAfectacion() {
+		return afectacion;
+	}
+
+	public void setAfectacion(Integer afectacion) {
+		this.afectacion = afectacion;
+	}
+
+	public String getCalce() {
+		return calce;
+	}
+
+	public void setCalce(String calce) {
+		this.calce = calce;
+	}
+
+	public String getCalif() {
+		return calif;
+	}
+
+	public void setCalif(String calif) {
+		this.calif = calif;
+	}
+
+	public String getCalifoncpt() {
+		return califoncpt;
+	}
+
+	public void setCalifoncpt(String califoncpt) {
+		this.califoncpt = califoncpt;
+	}
+
+	public String getCalifongaran() {
+		return califongaran;
+	}
+
+	public void setCalifongaran(String califongaran) {
+		this.califongaran = califongaran;
+	}
+
+	public String getClasificacion() {
+		return clasificacion;
+	}
+
+	public void setClasificacion(String clasificacion) {
+		this.clasificacion = clasificacion;
+	}
+
+	public Integer getConsecutiv() {
+		return consecutiv;
+	}
+
+	public void setConsecutiv(Integer consecutiv) {
+		this.consecutiv = consecutiv;
+	}
+
+	public String getContrato() {
+		return contrato;
+	}
+
+	public void setContrato(String contrato) {
+		this.contrato = contrato;
+	}
+
+	public Integer getCtoAdq() {
+		return ctoAdq;
+	}
+
+	public void setCtoAdq(Integer ctoAdq) {
+		this.ctoAdq = ctoAdq;
+	}
+
+	public String getCveEmisor() {
+		return cveEmisor;
+	}
+
+	public void setCveEmisor(String cveEmisor) {
+		this.cveEmisor = cveEmisor;
+	}
+
+	public Integer getCveInve() {
+		return cveInve;
+	}
+
+	public void setCveInve(Integer cveInve) {
+		this.cveInve = cveInve;
+	}
+
+	public String getCveOrg() {
+		return cveOrg;
+	}
+
+	public void setCveOrg(String cveOrg) {
+		this.cveOrg = cveOrg;
+	}
+
+	public String getCvePonderadorContraparte() {
+		return cvePonderadorContraparte;
+	}
+
+	public void setCvePonderadorContraparte(String cvePonderadorContraparte) {
+		this.cvePonderadorContraparte = cvePonderadorContraparte;
+	}
+
+	public String getCveTasRef() {
+		return cveTasRef;
+	}
+
+	public void setCveTasRef(String cveTasRef) {
+		this.cveTasRef = cveTasRef;
+	}
+
+	public Integer getdXInt() {
+		return dXInt;
+	}
+
+	public void setdXInt(Integer dXInt) {
+		this.dXInt = dXInt;
+	}
+
+	public String getDescrip() {
+		return descrip;
+	}
+
+	public void setDescrip(String descrip) {
+		this.descrip = descrip;
+	}
+
+	public Integer getDeterioro() {
+		return deterioro;
+	}
+
+	public void setDeterioro(Integer deterioro) {
+		this.deterioro = deterioro;
+	}
+
+	public Integer getDivXCob() {
+		return divXCob;
+	}
+
+	public void setDivXCob(Integer divXCob) {
+		this.divXCob = divXCob;
+	}
+
+	public String getFchAdq() {
+		return fchAdq;
+	}
+
+	public void setFchAdq(String fchAdq) {
+		this.fchAdq = fchAdq;
+	}
+
+	public String getFchEmi() {
+		return fchEmi;
+	}
+
+	public void setFchEmi(String fchEmi) {
+		this.fchEmi = fchEmi;
+	}
+
+	public String getFchVto() {
+		return fchVto;
+	}
+
+	public void setFchVto(String fchVto) {
+		this.fchVto = fchVto;
+	}
+
+	public Integer getInXDev() {
+		return inXDev;
+	}
+
+	public void setInXDev(Integer inXDev) {
+		this.inXDev = inXDev;
+	}
+
+	public Integer getIncDelVal() {
+		return incDelVal;
+	}
+
+	public void setIncDelVal(Integer incDelVal) {
+		this.incDelVal = incDelVal;
+	}
+
+	public Integer getIncXValuaCbi() {
+		return incXValuaCbi;
+	}
+
+	public void setIncXValuaCbi(Integer incXValuaCbi) {
+		this.incXValuaCbi = incXValuaCbi;
+	}
+
+	public Integer getIncXValuaOp() {
+		return incXValuaOp;
+	}
+
+	public void setIncXValuaOp(Integer incXValuaOp) {
+		this.incXValuaOp = incXValuaOp;
+	}
+
+	public Integer getIncXValuaRcs() {
+		return incXValuaRcs;
+	}
+
+	public void setIncXValuaRcs(Integer incXValuaRcs) {
+		this.incXValuaRcs = incXValuaRcs;
+	}
+
+	public String getIntLpCubreCp() {
+		return intLpCubreCp;
+	}
+
+	public void setIntLpCubreCp(String intLpCubreCp) {
+		this.intLpCubreCp = intLpCubreCp;
+	}
+
+	public String getIsin() {
+		return isin;
+	}
+
+	public void setIsin(String isin) {
+		this.isin = isin;
+	}
+
+	public String getLiquidez() {
+		return liquidez;
+	}
+
+	public void setLiquidez(String liquidez) {
+		this.liquidez = liquidez;
+	}
+
+	public String getMdaBase() {
+		return mdaBase;
+	}
+
+	public void setMdaBase(String mdaBase) {
+		this.mdaBase = mdaBase;
+	}
+
+	public Integer getMoneda() {
+		return moneda;
+	}
+
+	public void setMoneda(Integer moneda) {
+		this.moneda = moneda;
+	}
+
+	public String getNegociable() {
+		return negociable;
+	}
+
+	public void setNegociable(String negociable) {
+		this.negociable = negociable;
+	}
+
+	public String getNivelFondos() {
+		return nivelFondos;
+	}
+
+	public void setNivelFondos(String nivelFondos) {
+		this.nivelFondos = nivelFondos;
+	}
+
+	public String getNivel1() {
+		return nivel1;
+	}
+
+	public void setNivel1(String nivel1) {
+		this.nivel1 = nivel1;
+	}
+
+	public String getNivel2() {
+		return nivel2;
+	}
+
+	public void setNivel2(String nivel2) {
+		this.nivel2 = nivel2;
+	}
+
+	public String getNivel3() {
+		return nivel3;
+	}
+
+	public void setNivel3(String nivel3) {
+		this.nivel3 = nivel3;
+	}
+
+	public String getNivel4() {
+		return nivel4;
+	}
+
+	public void setNivel4(String nivel4) {
+		this.nivel4 = nivel4;
+	}
+
+	public String getNotaEstructurada() {
+		return notaEstructurada;
+	}
+
+	public void setNotaEstructurada(String notaEstructurada) {
+		this.notaEstructurada = notaEstructurada;
+	}
+
+	public String getParamtriz() {
+		return paramtriz;
+	}
+
+	public void setParamtriz(String paramtriz) {
+		this.paramtriz = paramtriz;
+	}
+
+	public Integer getPeriodAmort() {
+		return periodAmort;
+	}
+
+	public void setPeriodAmort(Integer periodAmort) {
+		this.periodAmort = periodAmort;
+	}
+
+	public Integer getPlazo() {
+		return plazo;
+	}
+
+	public void setPlazo(Integer plazo) {
+		this.plazo = plazo;
+	}
+
+	public Integer getPlazoCupon() {
+		return plazoCupon;
+	}
+
+	public void setPlazoCupon(Integer plazoCupon) {
+		this.plazoCupon = plazoCupon;
+	}
+
+	public String getPortaSegFlex() {
+		return portaSegFlex;
+	}
+
+	public void setPortaSegFlex(String portaSegFlex) {
+		this.portaSegFlex = portaSegFlex;
+	}
+
+	public Integer getPrecioUni() {
+		return precioUni;
+	}
+
+	public void setPrecioUni(Integer precioUni) {
+		this.precioUni = precioUni;
+	}
+
+	public Integer getPremio() {
+		return premio;
+	}
+
+	public void setPremio(Integer premio) {
+		this.premio = premio;
+	}
+
+	public String getReglaCupon() {
+		return reglaCupon;
+	}
+
+	public void setReglaCupon(String reglaCupon) {
+		this.reglaCupon = reglaCupon;
+	}
+
+	public String getSerie() {
+		return serie;
+	}
+
+	public void setSerie(String serie) {
+		this.serie = serie;
+	}
+
+	public Integer getTasaAmort() {
+		return tasaAmort;
+	}
+
+	public void setTasaAmort(Integer tasaAmort) {
+		this.tasaAmort = tasaAmort;
+	}
+
+	public Integer getTasaCupo() {
+		return tasaCupo;
+	}
+
+	public void setTasaCupo(Integer tasaCupo) {
+		this.tasaCupo = tasaCupo;
+	}
+
+	public Integer getTasaGaranti() {
+		return tasaGaranti;
+	}
+
+	public void setTasaGaranti(Integer tasaGaranti) {
+		this.tasaGaranti = tasaGaranti;
+	}
+
+	public Integer getTasaPactDer() {
+		return tasaPactDer;
+	}
+
+	public void setTasaPactDer(Integer tasaPactDer) {
+		this.tasaPactDer = tasaPactDer;
+	}
+
+	public Integer getTasaVal() {
+		return tasaVal;
+	}
+
+	public void setTasaVal(Integer tasaVal) {
+		this.tasaVal = tasaVal;
+	}
+
+	public Integer getTiiAmpDer() {
+		return tiiAmpDer;
+	}
+
+	public void setTiiAmpDer(Integer tiiAmpDer) {
+		this.tiiAmpDer = tiiAmpDer;
+	}
+
+	public String getTipoEmisora() {
+		return tipoEmisora;
+	}
+
+	public void setTipoEmisora(String tipoEmisora) {
+		this.tipoEmisora = tipoEmisora;
+	}
+
+	public String getTipoGarantiaCobertura() {
+		return tipoGarantiaCobertura;
+	}
+
+	public void setTipoGarantiaCobertura(String tipoGarantiaCobertura) {
+		this.tipoGarantiaCobertura = tipoGarantiaCobertura;
+	}
+
+	public String getTipoNotaEstructurada() {
+		return tipoNotaEstructurada;
+	}
+
+	public void setTipoNotaEstructurada(String tipoNotaEstructurada) {
+		this.tipoNotaEstructurada = tipoNotaEstructurada;
+	}
+
+	public String getTipoOrg() {
+		return tipoOrg;
+	}
+
+	public void setTipoOrg(String tipoOrg) {
+		this.tipoOrg = tipoOrg;
+	}
+
+	public String getTipoValor() {
+		return tipoValor;
+	}
+
+	public void setTipoValor(String tipoValor) {
+		this.tipoValor = tipoValor;
+	}
+
+	public Integer getTitulos() {
+		return titulos;
+	}
+
+	public void setTitulos(Integer titulos) {
+		this.titulos = titulos;
+	}
+
+	public Integer getTotalAct() {
+		return totalAct;
+	}
+
+	public void setTotalAct(Integer totalAct) {
+		this.totalAct = totalAct;
+	}
+
+	public Integer getValMercado() {
+		return valMercado;
+	}
+
+	public void setValMercado(Integer valMercado) {
+		this.valMercado = valMercado;
+	}
+
+	public Integer getValorConversionARiesgocpt() {
+		return valorConversionARiesgocpt;
+	}
+
+	public void setValorConversionARiesgocpt(Integer valorConversionARiesgocpt) {
+		this.valorConversionARiesgocpt = valorConversionARiesgocpt;
+	}
+
+	public Integer getValorGaranCober() {
+		return valorGaranCober;
+	}
+
+	public void setValorGaranCober(Integer valorGaranCober) {
+		this.valorGaranCober = valorGaranCober;
+	}
+
+	public Integer getValorNom() {
+		return valorNom;
+	}
+
+	public void setValorNom(Integer valorNom) {
+		this.valorNom = valorNom;
+	}
+
+	public String getVePonderadorGarantia() {
+		return vePonderadorGarantia;
+	}
+
+	public void setVePonderadorGarantia(String vePonderadorGarantia) {
+		this.vePonderadorGarantia = vePonderadorGarantia;
+	}
+
+}

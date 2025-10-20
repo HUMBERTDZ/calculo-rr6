@@ -1,0 +1,19 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Oinv;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface OINVService {
+	ArchivoRespuesta obtenerOINV(String nombre, String anioMes) throws IOException ;
+	
+	String saveList(List<Oinv> lista);
+
+	ResponseMessage updateOinv(List<BaseLayoutRr7> getBaseLayoutRr7);
+
+	boolean getExistRecords(String anioMes);
+}

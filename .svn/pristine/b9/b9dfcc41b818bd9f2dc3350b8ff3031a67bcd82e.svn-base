@@ -1,0 +1,2237 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.ws_rr7_generico.dao.BaseLayoutRr7DAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cred;
+import com.ws_rr7_generico.models.Deud;
+import com.ws_rr7_generico.models.Fopa;
+import com.ws_rr7_generico.models.Inmu;
+import com.ws_rr7_generico.models.Inve;
+import com.ws_rr7_generico.models.Irre;
+import com.ws_rr7_generico.models.Oinv;
+import com.ws_rr7_generico.models.Rr7ArchivoHistorico;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.ACREService;
+import com.ws_rr7_generico.services.BASEService;
+import com.ws_rr7_generico.services.BaseLayoutRr7Service;
+import com.ws_rr7_generico.services.CADQService;
+import com.ws_rr7_generico.services.CCMPService;
+import com.ws_rr7_generico.services.CMBGService;
+import com.ws_rr7_generico.services.CMERService;
+import com.ws_rr7_generico.services.COPEService;
+import com.ws_rr7_generico.services.CORDService;
+import com.ws_rr7_generico.services.CREDService;
+import com.ws_rr7_generico.services.CSINService;
+import com.ws_rr7_generico.services.CSOCService;
+import com.ws_rr7_generico.services.DEUDService;
+import com.ws_rr7_generico.services.FONDService;
+import com.ws_rr7_generico.services.FOPAService;
+import com.ws_rr7_generico.services.INDEService;
+import com.ws_rr7_generico.services.INMUService;
+import com.ws_rr7_generico.services.INVEService;
+import com.ws_rr7_generico.services.IRREService;
+import com.ws_rr7_generico.services.OACTService;
+import com.ws_rr7_generico.services.OINVService;
+import com.ws_rr7_generico.services.OPACService;
+import com.ws_rr7_generico.services.OPASService;
+import com.ws_rr7_generico.services.PRIMService;
+import com.ws_rr7_generico.services.RIFIService;
+import com.ws_rr7_generico.services.RR7ARCHIVOHISTORICOService;
+import com.ws_rr7_generico.services.ReportesRegulatoriosService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.CreateDocument;
+import com.ws_rr7_generico.util.Helper;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+//@Transactional(rollbackFor = Exception.class)
+@Service
+public class ReportesRegulatoriosServiceImpl implements ReportesRegulatoriosService {
+
+	@Autowired
+	private CMBGService cmbgService;
+
+	@Autowired
+	private CMERService cmerService;
+	
+	@Autowired
+	private OACTService oactService;
+	
+	@Autowired
+	private IRREService irreService;
+
+	@Autowired
+	private INMUService inmuService;
+	
+	@Autowired
+	private CREDService credService;
+	
+	@Autowired
+	private INVEService inveService;
+	
+	@Autowired
+	private ACREService acreService;
+	
+	@Autowired 
+	private PRIMService primService;
+	
+	@Autowired
+	private CADQService cadqService;
+	
+	@Autowired
+	private OINVService oinvService;
+	
+	@Autowired
+	private INDEService indeService;
+	
+	@Autowired
+	private CSINService csinService;
+
+	@Autowired
+	private DEUDService deudService;
+
+	@Autowired
+	private OPASService opasService;
+	
+	@Autowired
+	private RIFIService rifiService;
+	
+	@Autowired
+	private BASEService baseService;
+	
+	@Autowired
+	private CSOCService csocService;
+	
+	@Autowired
+	private COPEService copeService;
+	
+	@Autowired
+	private FOPAService fopaService;
+	
+	@Autowired
+	private CORDService cordService;
+	
+	@Autowired
+	private CCMPService ccmpService;
+	
+	@Autowired
+	private OPACService opacService;
+	
+	@Autowired
+	private FONDService fondService;
+
+	@Autowired
+	private BaseLayoutRr7DAO baseLayoutRr7DAO;
+	
+	@Autowired
+	private BaseLayoutRr7Service baseLayoutRr7Service;
+	
+	@Autowired
+	private RR7ARCHIVOHISTORICOService rr7ARCHIVOHISTORICOService;
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	
+	@Override
+	public ResponseMessage respuestaRR72(int[] idsArchivos ,String anioMes) throws IOException {
+		
+		ResponseMessage respuesta = new ResponseMessage();
+		
+		String [] anioMesArray = anioMes.split("-");
+		String anio = anioMesArray[0];
+		String mes = anioMesArray[1];
+
+		logger.info("anioMes: "+anioMes);
+		
+//		if (validacionBalanza(Integer.parseInt(anio), mes) == 1) {
+			idsArchivos = sinRepetir(idsArchivos);
+			if (idsArchivos != null) {
+				if (getExistReporte(Integer.parseInt(anio), mes, idsArchivos) == 0) {
+//					respuesta = procesarReportes(idsArchivos, anioMes);
+					respuesta = calcularReportes(idsArchivos, anioMes);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "Al menos uno de los archivos seleccionados ya existe. ¿Desea recalcular?", 2);
+				}				
+			} else {
+				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El directorio de Archivos se encuentra vacio", 1);
+			}
+//		} else {
+//			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Origen de datos Balanza Contablese encuentra vacio", 1);
+//		} 
+		return respuesta;
+	}
+	
+	@Override
+	public ResponseMessage respuestaRR7(int[] idsArchivos ,String anioMes) throws IOException {
+
+		ResponseMessage respuesta = new ResponseMessage();
+		LocalDate Date = LocalDate.now();
+		String fecha = "" +Date;
+		String claveRR7 = "RR7";
+		String cveSeguros = "S";
+		String cia = "0000";
+		String complemento = cveSeguros+cia+fecha.substring(0,4)+fecha.substring(5,7)+fecha.substring(8,10)+".txt";
+		String [] anioMesArray = anioMes.split("-");
+		String anio = anioMesArray[0];
+		String mes = anioMesArray[1];
+
+		idsArchivos = sinRepetir(idsArchivos);
+
+		if (idsArchivos != null) {
+			respuesta = validaTipoReporte(Integer.parseInt(anio), mes, idsArchivos, claveRR7, complemento);
+			//1 : TODOS LOS ARCHIVOS FUERON VALIDADOS PARA EL CALCULO
+			if (respuesta.getDataExtra().toString().equals("1")) {					
+				if (getExistReporte(Integer.parseInt(anio), mes, idsArchivos) == 0) {
+					
+					respuesta = calcularReportes(idsArchivos, anioMes);
+					
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Al menos uno de los archivos seleccionados ya existe. ¿Desea recalcular ?", 2);
+				}
+			}else {//0 : UNO O MAS ARCHIVOS NO PUEDE SER PROCESADO POR EL ORIGEN DE DATOS. NO EXISTE INFO
+//				logger.info("0 : UNO O MAS ARCHIVOS NO PUEDE SER PROCESADO POR EL ORIGEN DE DATOS. NO EXISTE INFO");
+				return respuesta;				
+			};
+		} else {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El directorio de Archivos se encuentra vacio", 0);
+		}
+		return respuesta;
+	}
+	
+	@Override
+	public ResponseMessage updateFiles(int[] idsArchivos ,String anioMes) throws IOException {
+
+		ResponseMessage respuesta = new ResponseMessage();
+		LocalDate Date = LocalDate.now();
+		String fecha = "" +Date;
+		String claveRR7 = "RR7";
+		String cveSeguros = "S";
+		String cia = "0000";
+		String complemento = cveSeguros+cia+fecha.substring(0,4)+fecha.substring(5,7)+fecha.substring(8,10)+".txt";
+		String [] anioMesArray = anioMes.split("-");
+		String anio = anioMesArray[0];
+		String mes = anioMesArray[1];
+
+		idsArchivos = sinRepetir(idsArchivos);
+
+		if (idsArchivos != null) {
+			respuesta = validaTipoReporte(Integer.parseInt(anio), mes, idsArchivos, claveRR7, complemento);
+			//1 : TODOS LOS ARCHIVOS FUERON VALIDADOS PARA EL CALCULO
+			if (respuesta.getDataExtra().toString().equals("1")) {					
+					respuesta = calcularReportes(idsArchivos, anioMes);				
+			}else {//0 : UNO O MAS ARCHIVOS NO PUEDE SER PROCESADO POR EL ORIGEN DE DATOS. NO EXISTE INFO
+//				logger.info("0 : UNO O MAS ARCHIVOS NO PUEDE SER PROCESADO POR EL ORIGEN DE DATOS. NO EXISTE INFO");
+				return respuesta;				
+			};
+		} else {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El directorio de Archivos se encuentra vacio", 0);
+		}
+		return respuesta;
+	}
+	
+	public ResponseMessage crossReporteWithBalanza (int anio, String mes, int[] idsArchivos, String claveRR7, String complemento) {
+		ResponseMessage respuesta = new ResponseMessage();
+		String nombre = "";
+
+		for (int i = 0; i < idsArchivos.length; i++) {
+
+			if ((idsArchivos[i] >= 1 && idsArchivos[i] <= 2)  || (idsArchivos[i] >= 10 && idsArchivos[i] <= 20)) {//DEPENDE DE BALANZA				
+				if (idsArchivos[i]==1) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CMBG"+complemento;
+				}
+				if (idsArchivos[i]==2) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CMER"+complemento;
+				}
+				if (idsArchivos[i]==10) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"OACT"+complemento;
+				}
+				if (idsArchivos[i]==11) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"ACRE"+complemento;
+				}
+				if (idsArchivos[i]==12) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"OPAS"+complemento;
+				}
+				if (idsArchivos[i]==13) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CSOC"+complemento;
+				}
+				if (idsArchivos[i]==14) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CORD"+complemento;
+				}
+				if (idsArchivos[i]==15) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"PRIM"+complemento;
+				}
+				if (idsArchivos[i]==16) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CADQ"+complemento;
+				}
+				if (idsArchivos[i]==17) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"OPAC"+complemento;
+				}
+				if (idsArchivos[i]==18) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"CSIN"+complemento;
+				}
+				if (idsArchivos[i]==19) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"COPE"+complemento;
+				}
+				if (idsArchivos[i]==20) {//DEPENDE DE BALANZA
+					nombre= claveRR7+"RIFI"+complemento;
+				}
+				
+				if (validacionBalanza(anio, mes) == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "La balanza contiene datos para la fecha " + anio + "-" + mes + " seleccionada.", 1);
+					break;
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la Balanza Contable para proceder con el calculo.", 0);
+					break;
+				}
+			}
+		}
+
+		return respuesta;
+	};
+	
+	public ResponseMessage crossReporteWithDataTable (int anio, String mes, int[] idsArchivos,String claveRR7, String complemento) {
+		ResponseMessage respuesta = new ResponseMessage();
+		String nombre = "";
+
+		for (int i = 0; i < idsArchivos.length; i++) {
+			if (idsArchivos[i]==3) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"INVE"+complemento;
+				if (inveService.getExistRecords(String.valueOf(anio).concat("-").concat(mes)) == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INVE para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INVE para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			
+			if (idsArchivos[i]==4) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"INDE"+complemento;
+				if (indeService.getExistRecords(String.valueOf(anio).concat("-").concat(mes)) == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INDE para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INDE para proceder con el calculo.", 0);
+					break;
+				}
+
+			}
+			
+			if (idsArchivos[i]==5) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"INMU"+complemento;
+				if (inmuService.getExistRecords(String.valueOf(anio).concat("-").concat(mes)) == 1) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INMU para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen INMU para proceder con el calculo.", 0);
+					break;
+				}
+
+			}
+			if (idsArchivos[i]==6) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"CRED"+complemento;			
+				if (credService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen CRED para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen CRED para proceder con el calculo.", 0);
+					break;
+				}	
+			}
+			
+			if (idsArchivos[i]==7) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"DEUD"+complemento;			
+				if (deudService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen DEUD para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen DEUD para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			
+			if (idsArchivos[i]==8) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"OINV"+complemento;
+				if (oinvService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen OINV para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen OINV para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			if (idsArchivos[i]==9) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"IRRE"+complemento;
+				if (irreService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen IRRE para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen IRRE para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			if (idsArchivos[i]==21) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"BASE"+complemento;
+				if (baseService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen BASE para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen BASE para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			if (idsArchivos[i]==22) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"CCMP"+complemento;
+				if (ccmpService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen CCMP para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen CCMP para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			if (idsArchivos[i]==23) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"FOPA"+complemento;
+				if (fopaService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen FOPA para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen FOPA para proceder con el calculo.", 0);
+					break;
+				}
+			}
+			if (idsArchivos[i]==24) {//DEPENDE DE DATOS CON ANIO MES
+				nombre= claveRR7+"FOND"+complemento;
+				if (fondService.getExistRecords(String.valueOf(anio).concat("-").concat(mes))) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen FOND para proceder con el calculo.", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anio + "-" + mes + " en la tabla origen FOND para proceder con el calculo.", 0);
+					break;
+				}
+			}
+		}
+		return respuesta;
+	}
+	
+	public ResponseMessage validaTipoReporte (int anio, String mes, int[] idsArchivos,String claveRR7, String complemento) {
+		ResponseMessage respuesta = new ResponseMessage();
+
+		for (int i = 0;i < idsArchivos.length; i++) {
+
+			if ((idsArchivos[i] >= 1 && idsArchivos[i] <= 2)  || (idsArchivos[i] >= 10 && idsArchivos[i] <= 20)) {
+				//EVALUA REPORTES QUE VIENEN DE LA BALANZA
+				respuesta =  crossReporteWithBalanza(anio, mes, idsArchivos, claveRR7, complemento);
+				//SI EXISTEN DATOS EN LA BALANZA ENTONCES PREGUNTA SI VIENEN REPORTES QUE USAN DATOS DIRECTOS DE TABLAS
+			} else if ((idsArchivos[i] >= 3 && idsArchivos[i] <= 9)  || (idsArchivos[i] >= 21 && idsArchivos[i] <= 24)) {
+				respuesta = crossReporteWithDataTable(anio, mes, idsArchivos, claveRR7, complemento);
+				if (respuesta.getDataExtra().toString().equals("1")) {
+					if ((idsArchivos[i] >= 1 && idsArchivos[i] <= 2)  || (idsArchivos[i] >= 10 && idsArchivos[i] <= 20)) {
+						respuesta =  crossReporteWithBalanza(anio, mes, idsArchivos, claveRR7, complemento);
+						if (respuesta.getDataExtra().toString().equals("1")) {
+							return respuesta;
+						} else {
+							return respuesta;
+						}
+					}else {
+						return respuesta;
+					}
+				} else {
+					return respuesta;
+				}
+			}
+		}		
+		return respuesta;
+	}
+
+	public int validacionBalanza (int anio, String mes) {
+	return baseLayoutRr7Service.getExistDataBalanzaContableByAnioMes(anio, mes);
+	}
+	
+	/**VALIDA EN LA TABLA HISTORICA DE REPORTES SI ES QUE EL REPORTE FUE CALCULADO CON EL MISMO ANIO Y MES**/
+	public int getExistReporte (int anio, String mes, int[] idsArchivos){
+		int existeReporte = 0;
+		for (int i = 0; i < idsArchivos.length; i++) {
+			existeReporte = rr7ARCHIVOHISTORICOService.getExistReporte(anio, mes, idsArchivos[i]);
+			if (existeReporte == 1) {
+				break;
+			}
+		}
+		return existeReporte;
+	}
+		
+	
+	@Override
+	public ResponseMessage calcularReportes(int[] idsArchivos ,String anioMes) throws IOException {
+		logger.info("calcularReportes");
+		ResponseMessage respuesta = new ResponseMessage();
+		LocalDate Date = LocalDate.now();
+		String fecha = "" +Date;
+		String nombre = "";
+		String claveRR7 = "RR7";
+		String cveSeguros = "S";
+		String cia = "0000";
+		String complemento = cveSeguros+cia+fecha.substring(0,4)+fecha.substring(5,7)+fecha.substring(8,10)+".txt";
+		ArchivoRespuesta ar  = null;
+		Rr7ArchivoHistorico ah;
+		List<ArchivoRespuesta> listResponse = new ArrayList<>();
+		int existeInfo = 0;
+		
+		List<ArchivoRespuesta> listResponseValidaciones = new ArrayList<>();
+		String [] anioyMes = anioMes.split("-");
+		String anio = anioyMes[0].toString();
+		String mes = anioyMes[1].toString();
+		
+		int idVal = 0;
+		
+		try {
+		for (int i = 0; i < idsArchivos.length; i++) {
+			if (idsArchivos[i]==1) {
+				logger.info("1.- CREANDO ARCHIVO CMBG");
+				existeInfo = updateAndCalculate(1, anioMes );
+				nombre= claveRR7+"CMBG"+complemento;
+//				if (existeInfo == 1) {				COMENTADO			
+					ar = new ArchivoRespuesta();
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);					
+					}
+//				}else if (existeInfo == 2) {		COMENTADO Y ABAJO
+//					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//				} else {			COMENTADO Y ABAJO
+//					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+//				} COMENTADO
+			}		
+
+			if (idsArchivos[i]==2) {				
+				System.out.println("CREANDO CMER");
+				existeInfo = updateAndCalculate(2, anioMes );
+				nombre= claveRR7+"CMER"+complemento;
+				if (existeInfo == 1) {
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+					}
+				}else if (existeInfo == 2 ) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==3) {
+				System.out.println("CREANDO INVE");
+				existeInfo = updateAndCalculate(3, anioMes );
+				nombre= claveRR7+"INVE"+complemento;
+				if (existeInfo == 1) {
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"INVE",anio,mes, idVal);
+					}		
+				} else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha seleccionada.", 0);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==4) {
+				System.out.println("CREANDO INDE");
+					existeInfo = updateAndCalculate(4, anioMes );
+					nombre= claveRR7+"INDE"+complemento;
+				if (existeInfo == 1) {					
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"INDE",anio,mes, idVal);
+					}		
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha "+anioMes+" seleccionada.", 0);
+				}else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}	
+			}
+
+			if (idsArchivos[i]==5) {
+				System.out.println("CREANDO INMU");
+				existeInfo = updateAndCalculate(5, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"INMU"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"INMU",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha "+anioMes+" seleccionada.", 0);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				} 
+			}
+
+			if (idsArchivos[i]==6) {
+				System.out.println("CREANDO CRED");
+				existeInfo = updateAndCalculate(6, anioMes ) ;
+				if (existeInfo == 1) {
+					nombre= claveRR7+"CRED"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CRED",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha "+anioMes+" seleccionada.", 0);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+			if (idsArchivos[i]==7) {
+				System.out.println("CREANDO DEUD");
+				existeInfo = updateAndCalculate(7, anioMes ) ;
+				if (existeInfo == 1) {
+					nombre= claveRR7+"DEUD"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"DEUD",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha "+anioMes+" seleccionada.", 0);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}			
+			}
+			if (idsArchivos[i]==8) {
+				System.out.println("CREANDO OINV");		    
+				existeInfo = updateAndCalculate(8, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"OINV"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"OINV",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " no puede ser procesado, debido a que no existen datos acorde a la fecha "+anioMes+" seleccionada.", 0);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+			if (idsArchivos[i]==9) {
+				System.out.println("CREANDO IRRE");
+				existeInfo = updateAndCalculate(9, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"IRRE"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"IRRE",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==10) {
+				System.out.println("CREANDO OACT");
+				existeInfo = updateAndCalculate(10, anioMes ); 
+				if (existeInfo == 1) {
+					nombre= claveRR7+"OACT"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"OACT",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==11) {
+				System.out.println("CREANDO ACRE");
+				existeInfo = updateAndCalculate(11, anioMes ); 
+				if (existeInfo == 1) {
+					nombre= claveRR7+"ACRE"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"ACRE",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==12) {
+				System.out.println("CREANDO OPAS");
+				existeInfo = updateAndCalculate(12, anioMes);
+				if (existeInfo == 1) {
+					nombre= claveRR7+"OPAS"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"OPAS",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==13) {
+				System.out.println("CREANDO CSOC");
+				existeInfo = updateAndCalculate(13, anioMes ); 
+				if (existeInfo == 1) {
+					nombre= claveRR7+"CSOC"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);		
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CSOC",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}	
+
+			if (idsArchivos[i]==14) {
+				System.out.println("CREANDO CORD");
+				existeInfo = updateAndCalculate(14, anioMes );				
+				if (existeInfo == 1) {
+					nombre= claveRR7+"CORD"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CORD",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==15) {
+				System.out.println("CREANDO PRIM");
+				existeInfo = updateAndCalculate(15, anioMes );  
+				if (existeInfo == 1) {
+					nombre= claveRR7+"PRIM"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"PRIM",anio,mes, idVal);
+					}
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);	
+				}
+			}
+
+			if (idsArchivos[i]==16) {
+				System.out.println("CREANDO 16");
+				existeInfo = updateAndCalculate(16, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"CADQ"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CADQ",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);	
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==17) {
+				System.out.println("CREANDO OPAC");
+				existeInfo = updateAndCalculate(17, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"OPAC"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"OPAC",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==18) {
+				System.out.println("CREANDO CSIN");
+				existeInfo = updateAndCalculate(18, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"CSIN"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CSIN",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==19) {
+				System.out.println("CREANDO COPE");
+				existeInfo = updateAndCalculate(19, anioMes );
+				if (existeInfo == 1) {
+					nombre= claveRR7+"COPE"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah = findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"COPE",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==20) {
+				System.out.println("CREANDO RIFI");
+				existeInfo = updateAndCalculate(20, anioMes ); 
+				if (existeInfo == 1) {
+					nombre= claveRR7+"RIFI"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"RIFI",anio,mes, idVal);
+					}	
+				}else if (existeInfo == 2) {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==21) {
+				System.out.println("CREANDO BASE");
+				if (updateAndCalculate(21, anioMes ) == 1) {
+					nombre= claveRR7+"BASE"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah = findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"BASE",anio,mes, idVal);
+					}	
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==22) {
+				System.out.println("CREANDO CCMP");
+				if (updateAndCalculate(22, anioMes ) == 1) {
+					nombre= claveRR7+"CCMP"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah =  findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"CCMP",anio,mes, idVal);
+					}	
+				} else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==23) {
+				System.out.println("CREANDO FOPA");
+				if (updateAndCalculate(23, anioMes ) == 1) {
+					nombre= claveRR7+"FOPA"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah = findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);	
+						
+						idVal = idsArchivos[i]+30;
+						listResponseValidaciones = 
+								getArchivoValidaciones(listResponseValidaciones,"FOPA",anio,mes, idVal);
+					}	
+				}
+				else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+
+			if (idsArchivos[i]==24) {
+				System.out.println("CREANDO FIND");
+				if (updateAndCalculate(24, anioMes ) == 1) {
+					nombre= claveRR7+"FOND"+complemento;
+					ar = new ArchivoRespuesta(); 
+					ah = findByIdArchivo(idsArchivos[i],anioMes);
+					if (ah != null) {
+						ar.setBaseArchivo(ah.getBase64Rr7()); 
+						ar.setNombreArchivo(nombre); 
+						listResponse.add(ar);					
+					}	
+				}
+				else {
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "El reporte " + nombre + " obtuvo un error. Intente actualizar posteriormente.", -1);
+				}
+			}
+		}
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		if (listResponse.size() >= 1) {
+			Map<String, Object> mapa= new HashMap<String, Object>();
+			mapa.put("Archivos",listResponse);	
+			
+			if (listResponseValidaciones.size() >= 1) {
+				mapa.put("ArchivosValidaciones", listResponseValidaciones);
+			}
+			
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "1", mapa);
+		}else{
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "1", respuesta);
+		}
+		
+		return respuesta;
+
+	}
+	
+	private List<ArchivoRespuesta> getArchivoValidaciones(List<ArchivoRespuesta> listResponseValidaciones,
+			String nombreArchivo, String anio, String mes, int idVal) throws IOException, ParseException {
+
+		List<String> archivosConValidacionesActivos = Arrays.asList("IRRE", "FOPA", "OACT", "ACRE", "OPAS", "CSOC",
+				"CORD", "PRIM", "CADQ", "CSIN", "OPAC", "COPE", "RIFI", "BASE", "INVE", "CCMP", "INDE","INMU","CRED","OINV","DEUD");
+
+		if (archivosConValidacionesActivos.contains(nombreArchivo)) {
+			if (rr7ARCHIVOHISTORICOService.existenErroresArchivo(nombreArchivo, anio + "-" + mes)) {
+				logger.info("Entro en validaciones archivo");
+				String queryContenido = getValidacionesQueryContenido(nombreArchivo);
+				List<Map<String, Object>> exelContenidoListMap = rr7ARCHIVOHISTORICOService.getRecordGeneral(queryContenido);
+				String[] header = getValidacionesheaderNames(exelContenidoListMap);
+				String[][] documento = crearDocumentoArrayContenido(exelContenidoListMap,header);
+				ArchivoRespuesta arValidacion =  crearExelArchivoValidacion(nombreArchivo,documento,header,anio,mes,idVal);
+				listResponseValidaciones.add(arValidacion);
+			}
+
+		}
+		return listResponseValidaciones;
+	}
+
+	private String[][] crearDocumentoArrayContenido(List<Map<String, Object>> exelContenidoListMap,
+			String[] header) {
+		String[][] documento = new String[exelContenidoListMap.size()][header.length];
+		int rowCount = 0;
+		int colCount = 0;
+		for (Iterator<Map<String, Object>> iterator = exelContenidoListMap.iterator(); iterator.hasNext();) {
+			Map<String, Object> map = (Map<String, Object>) iterator.next();
+			colCount = 0;
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+				documento[rowCount][colCount] = entry.getValue() == null ? "" : entry.getValue().toString();
+				colCount++;
+			}
+			rowCount++;
+		}
+		return documento;
+	}
+
+	private ArchivoRespuesta crearExelArchivoValidacion(String nombreArchivo, String[][] documento, String[] header, 
+			String anio, String mes, int idVal) throws IOException, ParseException {		
+		String nombreArchivoExel = nombreArchivo + "_val.xlsx";
+		CreateDocument documentoCreador = new CreateDocument();
+		documentoCreador.CrearExcel(header, documento, nombreArchivoExel, nombreArchivo);
+		// Convertir a base 64
+		String filePath = "D:\\TempSesa\\" + nombreArchivoExel;
+		File file = new File(filePath);
+		FileInputStream fis = new FileInputStream(file);
+		byte[] bytes = new byte[(int) file.length()];
+		fis.read(bytes);
+		byte[] bytesEncodero = Base64.getEncoder().encode(bytes);
+		String base64Archivo = new String(bytesEncodero);
+		fis.close();
+		// Añadir como base 64
+		ArchivoRespuesta arValidacion = null;
+		arValidacion = new ArchivoRespuesta();
+		arValidacion.setBaseArchivo(base64Archivo);
+		arValidacion.setNombreArchivo(nombreArchivoExel);
+		
+		insertValidacionesRR7(bytes, anio, mes, idVal);
+		
+		return arValidacion;
+	}
+
+	public void insertValidacionesRR7(byte[] bytes, String anio, String mes, int id) {
+		Date myDate = new Date();
+		String byteBase64 = Base64.getEncoder().encodeToString(bytes);
+		String fecha = new SimpleDateFormat("yyyy-MM-dd").format(myDate);
+		String query = "SELECT (IIF((SELECT ANIO FROM RR7ARCHIVOHISTORICO WHERE IDARCHIVO='"+id+"' AND MES='"+mes+"' AND ANIO='"+anio+"') IS NULL, 0 , 1))";
+		int existe = jdbcTemplate.queryForObject(query, Integer.class);
+		if(existe == 0) {
+			jdbcTemplate.update(
+				"INSERT INTO RR7ARCHIVOHISTORICO (FECHAREGISTRO, BASE64RR7, ANIO, IDARCHIVO, MES) VALUES (?, ?, ?, ?, ?)",
+				fecha, byteBase64, anio,  id ,mes );
+		}else {
+			String sql = "Update RR7ARCHIVOHISTORICO Set FECHAREGISTRO = ? ,BASE64RR7 = ? ,ANIO = ? ,MES = ? Where IDARCHIVO = ? AND ANIO= ? AND MES= ?";
+			jdbcTemplate.update(sql, fecha, byteBase64, anio ,mes, id, anio ,mes);
+		}
+	}
+	
+	private String[] getValidacionesheaderNames(List<Map<String, Object>> exelContenidoListMap) {
+		List<String> headerList = new ArrayList<>();
+		for (Iterator<Map<String, Object>> iterator = exelContenidoListMap.iterator(); iterator.hasNext();) {
+			Map<String, Object> map = (Map<String, Object>) iterator.next();
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+				headerList.add(entry.getKey());
+			}
+			break;
+		}
+		headerList.add("");// Columna extra vacia ya que se pierde una al generar el exel
+		return headerList.toArray(new String[0]);
+	}
+
+	private String getValidacionesQueryContenido(String nombreArchivo) {
+
+		String queryContenido = " SELECT * FROM TBL_VALIDACIONES_" + nombreArchivo + " ";
+		switch (nombreArchivo) {
+		case "CMBG":
+
+			break;
+		case "CMER":
+
+			break;
+		case "INVE":
+			queryContenido = generarQueryValidaciones(nombreArchivo,5);
+			break;
+		case "INDE":
+			queryContenido = generarQueryValidaciones(nombreArchivo,6);
+			break;
+		case "INMU":
+			queryContenido = generarQueryValidaciones(nombreArchivo,10);
+			break;
+		case "CRED":
+			queryContenido = generarQueryValidaciones(nombreArchivo,15);
+			break;
+		case "DEUD":
+			queryContenido = generarQueryValidaciones(nombreArchivo,3);
+			break;
+		case "OINV":
+			queryContenido = generarQueryValidaciones(nombreArchivo,2);
+			break;
+		case "IRRE":
+		case "OACT":
+		case "ACRE":
+		case "OPAS":
+		case "CSOC":
+		case "CORD":
+		case "PRIM":
+		case "CADQ":
+		case "OPAC":
+		case "CSIN":
+		case "COPE":
+		case "RIFI":
+			queryContenido = generarQueryValidaciones(nombreArchivo,1);
+			break;
+		case "BASE":
+			queryContenido = generarQueryValidaciones(nombreArchivo,2);
+			break;
+		case "CCMP":
+			queryContenido = generarQueryValidaciones(nombreArchivo,3);
+			break;
+		case "FOPA":
+			queryContenido = generarQueryValidaciones(nombreArchivo,1);
+			break;
+		case "FOND":
+			break;
+		default:
+
+		}
+
+		return queryContenido;
+
+	}
+
+	private String generarQueryValidaciones(String nombreArchivo, int numeroErrores) {
+		String selectorError = "", innerJoin="" , res = "",nombreTabla="",consultaInicio="";
+		
+		for(int i=1;i<(numeroErrores+1);i++) {
+			selectorError += "C"+i+".MENSAJE_ERROR  AS 'ERROR "+i+"',";
+			innerJoin += "LEFT JOIN CAT_ERROR_ARCHIVOSRR7 AS C"+i+" ON V.ERROR_"+i+"=C"+i+".CLAVE ";
+		}
+		selectorError = selectorError.substring(0, selectorError.length() -1);
+		
+		consultaInicio = "SELECT V.NIVEL_1 AS 'NIVEL 1',V.NIVEL_2  AS 'NIVEL 2',V.NIVEL_3  AS 'NIVEL 3',V.NIVEL_4  AS 'NIVEL 4',MONEDA,";
+
+		nombreTabla = " FROM TBL_VALIDACIONES_" + nombreArchivo +  " AS V ";
+		res = consultaInicio + selectorError + nombreTabla+ innerJoin;
+		return res ;
+	}
+	
+	
+	
+	public ResponseMessage procesarReportes(int[] idsArchivos ,String anioMes) throws IOException { 
+		 
+		ResponseMessage respuesta = new ResponseMessage();
+		LocalDate Date = LocalDate.now();
+		String fecha = "" +Date;
+		String nombre = "";
+		String claveRR7 = "RR7";
+		String cveSeguros = "S";
+		String cia = "0000";
+		String complemento = cveSeguros+cia+fecha.substring(0,4)+fecha.substring(5,7)+fecha.substring(8,10)+".txt";
+		ArchivoRespuesta ar  = null;
+		Rr7ArchivoHistorico ah;
+		
+		List<ArchivoRespuesta> listResponse = new ArrayList<>();
+		
+		for (int i = 0; i < idsArchivos.length; i++) {
+			
+			
+			if (idsArchivos[i]==1) {
+				nombre= claveRR7+"CMBG"+complemento;
+				ar = new ArchivoRespuesta();
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					logger.info("1.- CREANDO ARCHIVO CMBG");
+					updateAndCalculate(1, anioMes );
+				}
+			}
+			if (idsArchivos[i]==2) {
+				nombre= claveRR7+"CMER"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO CMER");
+					updateAndCalculate(2, anioMes );
+				}
+			}
+			if (idsArchivos[i]==3) {
+				nombre= claveRR7+"INVE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}
+				else {
+					System.out.println("CREANDO INVE");
+					updateAndCalculate(3, anioMes );
+				}
+			}
+			if (idsArchivos[i]==4) {
+				nombre= claveRR7+"INDE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}
+				else {
+					System.out.println("CREANDO INDE");
+					updateAndCalculate(4, anioMes );
+				}
+			}
+			if (idsArchivos[i]==5) {
+				nombre= claveRR7+"INMU"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}
+				else{
+					System.out.println("CREANDO INMU");
+					updateAndCalculate(5, anioMes );
+				}
+			}
+			if (idsArchivos[i]==6) {
+				nombre= claveRR7+"CRED"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}
+				else {
+					System.out.println("CREANDO CRED");
+					updateAndCalculate(6, anioMes );
+				}
+			}
+			if (idsArchivos[i]==7) {
+				nombre= claveRR7+"DEUD"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO DEUD");
+					updateAndCalculate(7, anioMes );
+				}
+			}
+			if (idsArchivos[i]==8) {
+				nombre= claveRR7+"OINV"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else{
+					System.out.println("CREANDO OINV");
+				    updateAndCalculate(8, anioMes );
+				}
+			}
+			if (idsArchivos[i]==9) {
+				nombre= claveRR7+"IRRE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO IRRE");
+					updateAndCalculate(9, anioMes );
+				}
+			}
+			if (idsArchivos[i]==10) {				
+				nombre= claveRR7+"OACT"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO OACT");
+					updateAndCalculate(10, anioMes );
+				}
+			}
+			if (idsArchivos[i]==11) {				
+				nombre= claveRR7+"ACRE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO ACRE");
+					updateAndCalculate(11, anioMes );
+				}
+			}
+			if (idsArchivos[i]==12) {
+				nombre= claveRR7+"OPAS"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO OPAS");
+					updateAndCalculate(12, anioMes );
+				}
+			}
+			if (idsArchivos[i]==13) {
+				nombre= claveRR7+"CSOC"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO CSOC");
+					updateAndCalculate(13, anioMes );
+				}
+			}	
+			if (idsArchivos[i]==14) {
+				nombre= claveRR7+"CORD"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO CORD");
+					updateAndCalculate(14, anioMes );
+				}
+			}	
+			if (idsArchivos[i]==15) {				
+				nombre= claveRR7+"PRIM"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO PRIM");
+					updateAndCalculate(15, anioMes );
+				}
+			}
+			if (idsArchivos[i]==16) {				
+				nombre= claveRR7+"CADQ"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO 16");
+					updateAndCalculate(16, anioMes );
+				}
+			}
+			if (idsArchivos[i]==17) {				
+				nombre= claveRR7+"OPAC"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO OPAC");
+					updateAndCalculate(17, anioMes );
+				}
+			}
+			if (idsArchivos[i]==18) {
+				nombre= claveRR7+"CSIN"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO CSIN");
+					updateAndCalculate(18, anioMes );
+				}
+			}
+			if (idsArchivos[i]==19) {
+				nombre= claveRR7+"COPE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah = findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO COPE");
+					updateAndCalculate(19, anioMes );
+				}
+			}
+			if (idsArchivos[i]==20) {				
+				nombre= claveRR7+"RIFI"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO RIFI");
+					updateAndCalculate(20, anioMes );
+				}
+			}
+			if (idsArchivos[i]==21) {				
+				nombre= claveRR7+"BASE"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah = findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO BASE");
+					updateAndCalculate(21, anioMes );
+				}
+			}
+			if (idsArchivos[i]==22) {				
+				nombre= claveRR7+"CCMP"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah =  findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO CCMP");
+					updateAndCalculate(22, anioMes );
+				}
+			}
+			if (idsArchivos[i]==23) {				
+				nombre= claveRR7+"FOPA"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah = findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO FOPA");
+					updateAndCalculate(23, anioMes );
+				}
+			}
+			if (idsArchivos[i]==24) {				
+				nombre= claveRR7+"FOND"+complemento;
+				ar = new ArchivoRespuesta(); 
+				ah = findByIdArchivo(idsArchivos[i],anioMes);
+				if (ah != null) {
+					ar.setBaseArchivo(ah.getBase64Rr7()); 
+					ar.setNombreArchivo(nombre); 
+					listResponse.add(ar);					
+				}else {
+					System.out.println("CREANDO FIND");
+					updateAndCalculate(24, anioMes );
+				}
+			}
+			
+		}
+		
+		Map<String, Object> mapa= new HashMap<String, Object>();
+		mapa.put("Archivos",listResponse);		
+		respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, null, mapa);
+		return respuesta;
+	
+	}
+
+	public static int[] sinRepetir(int[] a) {
+		Arrays.sort(a);
+		int len = a.length;
+		int j = 0;
+		for (int i = 0; i < len - 1; i++) {
+			if (a[i] != a[i + 1]) {
+				a[j++] = a[i];
+			}
+		}
+		a[j++] = a[len - 1];
+		int[] c = new int[j];
+		for (int k = 0; k < j; k++) {
+			c[k] = a[k];
+		}
+		return c;
+	}
+	
+	public ResponseMessage saveObjectList(int idArchivo,Object lista){
+		ResponseMessage respuesta = null;
+		String res= "";
+		Helper helper = new Helper();
+
+		 switch (idArchivo) 
+	        {
+	            case 3:  
+	            	Inve inve ;	
+	        		Inve inveResult ;	
+	        		List<Inve> saveList= new ArrayList<>();
+	        		Iterator iter = ((List<Inve>) lista).iterator();
+	        		while(iter.hasNext()){
+	        			inve = (Inve)iter.next();
+	        			inveResult = new Inve();
+	        			inveResult = helper.buildInve(inve);
+	        			saveList.add(inveResult);
+	        		}
+	        		if (saveList != null && saveList.size()!=0) {
+	        			res = inveService.saveList(saveList);
+	        			if (res.equalsIgnoreCase("ok")) {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+	        			}else {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+	        			}
+	        		}else {
+	        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+	        		}
+
+	        		break;
+	            case 5:  
+            	Inmu inmu;	
+            	Inmu inmuResult ;	
+        		List<Inmu> saveListInmu= new ArrayList<>();
+        		Iterator iterInmu = ((List<Inmu>) lista).iterator();
+        		while(iterInmu.hasNext()){
+        			inmu = (Inmu)iterInmu.next();
+        			inmuResult = new Inmu();
+        			inmuResult = helper.buildInmu(inmu);
+        			saveListInmu.add(inmuResult);
+        		}
+        		if (saveListInmu != null && saveListInmu.size()!=0) {
+        			res = inmuService.saveList(saveListInmu);
+        			if (res.equalsIgnoreCase("ok")) {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+        			}else {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+        			}
+        		}else {
+        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+        		}
+	            break;
+	            case 6:  
+	            	Cred cred;	
+	            	Cred credResult ;	
+	        		List<Cred> saveListCred= new ArrayList<>();
+	        		Iterator iterCred= ((List<Cred>) lista).iterator();
+	        		while(iterCred.hasNext()){
+	        			cred = (Cred)iterCred.next();
+	        			credResult = new Cred();
+	        			credResult = helper.buildCred(cred);
+	        			saveListCred.add(credResult);
+	        		}
+	        		if (saveListCred!= null && saveListCred.size()!=0) {
+	        			res = credService.saveList(saveListCred);
+	        			if (res.equalsIgnoreCase("ok")) {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+	        			}else {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+	        			}
+	        		}else {
+	        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+	        		}
+	           break;
+	            case 7:  ;
+	            	Deud deud;	
+	            	Deud deudResult ;	
+	        		List<Deud> saveListDeud= new ArrayList<>();
+	        		Iterator iterDeud= ((List<Deud>) lista).iterator();
+	        		while(iterDeud.hasNext()){
+	        			deud = (Deud)iterDeud.next();
+	        			deudResult = new Deud();
+	        			deudResult = helper.buildDeud(deud);
+	        			saveListDeud.add(deudResult);
+	        		}
+	        		if (saveListDeud!= null && saveListDeud.size()!=0) {
+	        			res = deudService.saveList(saveListDeud);
+	        			if (res.equalsIgnoreCase("ok")) {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+	        			}else {
+	        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+	        			}
+	        		}else {
+	        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+	        		}
+
+	                break;
+	            case 8:  ;
+            	Oinv oinv;	
+            	Oinv oinvResult ;	
+        		List<Oinv> saveListOinv= new ArrayList<>();
+        		Iterator iterOinv= ((List<Oinv>) lista).iterator();
+        		while(iterOinv.hasNext()){
+        			oinv = (Oinv)iterOinv.next();
+        			oinvResult = new Oinv();
+        			oinvResult = helper.buildOinv(oinv);
+        			saveListOinv.add(oinvResult);
+        		}
+        		if (saveListOinv!= null && saveListOinv.size()!=0) {
+        			res = oinvService.saveList(saveListOinv);
+        			if (res.equalsIgnoreCase("ok")) {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+        			}else {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+        			}
+        		}else {
+        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+        		}
+
+                break;
+	            case 9:  ;
+	            Irre irre;	
+	            Irre irreResult ;	
+        		List<Irre> saveListIrre= new ArrayList<>();
+        		Iterator iterIrre= ((List<Irre>) lista).iterator();
+        		while(iterIrre.hasNext()){
+        			irre = (Irre)iterIrre.next();
+        			irreResult = new Irre();
+        			irreResult = helper.buildIrre(irre);
+        			saveListIrre.add(irreResult);
+        		}
+        		if (saveListIrre!= null && saveListIrre.size()!=0) {
+        			res = irreService.saveList(saveListIrre);
+        			if (res.equalsIgnoreCase("ok")) {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+        			}else {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+        			}
+        		}else {
+        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+        		}
+
+                break;
+
+	            case 23:  ;
+	            Fopa fopa;	
+	            Fopa fopaResult ;	
+        		List<Fopa> saveListFopa= new ArrayList<>();
+        		Iterator iterFopa= ((List<Fopa>) lista).iterator();
+        		while(iterFopa.hasNext()){
+        			fopa = (Fopa)iterFopa.next();
+        			fopaResult = new Fopa();
+        			fopaResult = helper.buildFopa(fopa);
+        			saveListFopa.add(fopaResult);
+        		}
+        		if (saveListFopa!= null && saveListFopa.size()!=0) {
+        			res = fopaService.saveList(saveListFopa);
+        			if (res.equalsIgnoreCase("ok")) {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Guardado", null);
+        			}else {
+        				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No guardado", null);
+        			}
+        		}else {
+        			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_ERROR, "No hay reglistros por guardar", null);
+        		}
+
+                break;
+
+	            default: 
+					respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Arcivo no existente", null);
+					break;
+	        }
+
+		return respuesta;
+	}
+
+	/**ACTUALIZA Y CALCULA EL REPORTE SOLICITADO POR ID Y FECHA ANIO MES ***/
+	public int updateAndCalculate(int idArchivo,String anioMes) throws IOException{
+		ResponseMessage respuesta = null;
+		
+		logger.info("updateAndCalculate");
+		
+		int archivoActualizado = 0;
+		List<BaseLayoutRr7> getBaseLayoutRr7 = baseLayoutRr7DAO.findAll();
+		LocalDate Date = LocalDate.now();
+		String fecha = ""+Date; 
+		String nombre = "";
+		String claveRR7 = "RR7";
+		String cveSeguros = "S";
+		String cia = "0000";
+		String complemento = cveSeguros+cia+fecha.substring(0,4)+fecha.substring(5,7)+fecha.substring(8,10)+".txt";
+		String [] anioMesArra = anioMes.split("-");
+		
+		ArchivoRespuesta ar  = new ArchivoRespuesta();
+		Rr7ArchivoHistorico getRr7Archivo = new Rr7ArchivoHistorico();
+		switch (idArchivo) {
+		case 1:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {-
+				respuesta = cmbgService.updateCmbg1(anioMes);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CMBG"+complemento;
+					logger.info("Ejecutando calculos y generando archivo");
+					ar = cmbgService.obtenerCMBG(nombre);				
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);				
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);				
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente" + archivoActualizado);	
+				}
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			
+//			}			
+			break;
+		case 2:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = cmerService.updateCmer1(anioMes);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CMER"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = cmerService.obtenerCMER(nombre);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}
+			break;
+		case 3:
+			//			respuesta = inveService.updateInve(getBaseLayoutRr7);/// archivo que se sube directamente 
+			//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+			nombre= claveRR7+"INVE"+complemento;
+			logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//			if (inveService.getExistRecords(anioMes) == 0) {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//			} else {
+				ar = inveService.obtenerINVE(nombre,anioMes);					
+				getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+				Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+				archivoActualizado = 1;
+				logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);
+//			}
+			break;
+		case 4:
+//			respuesta = indeService.updateInde(getBaseLayoutRr7);
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {   /////MANUAL 100 %
+				nombre= claveRR7+"INDE"+complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//				if (indeService.getExistRecords(anioMes) == 0) {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				}else {
+					ar = indeService.obtenerINDE(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);					
+//				}
+			break;
+		case 5:
+//			respuesta = inmuService.updateInmu(getBaseLayoutRr7);
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) { MANUAL 100 %
+				nombre= claveRR7 + "INMU" + complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//				if (inmuService.getExistRecords(anioMes) == 0) {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				} else {
+					ar = inmuService.obtenerINMU(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);
+//				}
+			break;
+
+		case 6:
+//			respuesta = credService.updateCred(getBaseLayoutRr7);
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {MANUAL 100 %
+				nombre= claveRR7+"CRED"+complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//				if (!credService.getExistRecords(anioMes)) {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				} else {
+					ar = credService.obtenerCRED(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);
+//				}
+			break;
+		case 7:
+			//respuesta = deudService.updateDeud(getBaseLayoutRr7);
+		//	if (respuesta.getMensaje()	.equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"DEUD"+complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");	
+//				if (deudService.getExistRecords(anioMes)) {
+					ar = deudService.obtenerDEUD(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);
+//				} else {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				}
+			break;
+		case 8:
+//			respuesta = oinvService.updateOinv(getBaseLayoutRr7);
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {  //// ARCHIVO 100 % MANUAL
+				nombre= claveRR7+"OINV"+complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//				if (oinvService.getExistRecords(anioMes)) {
+					ar = oinvService.obtenerOINV(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);
+//				} else {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				}
+			break;
+		case 9:
+//			respuesta = oinvService.updateOinv(getBaseLayoutRr7);
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"IRRE"+complemento;
+				logger.info("ARCHIVO " + nombre + " TIPO SEMI AUTOMATICO ");
+//				if (irreService.getExistRecords(anioMes)) {
+					ar = irreService.obtenerIRRE(nombre, anioMes);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK +" Archivo " + nombre + " generado correctamente " + archivoActualizado);	
+//				} else {
+//					archivoActualizado = 2;
+//					logger.info(Constantes.RESPONSEMESSAGE_OK + " No existe información para el Archivo " + nombre + ". " + archivoActualizado);
+//				}
+			break;
+		case 10:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = oactService.updateOact(getBaseLayoutRr7); /// NIVELES , MONEDA , SUBCUENTA CVE OTROS ACTIVOS 
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"OACT"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = oactService.obtenerOACT(nombre);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+					archivoActualizado = 1;
+				}				
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 11:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = acreService.updateAcre(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"ACRE"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = acreService.obtenerACRE(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);;
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 12:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = opasService.updateOpas(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"OPAS"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = opasService.obtenerOPAS(nombre);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}
+			break;
+		case 13:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = csocService.updateCsoc(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CSOC"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = csocService.obtenerCSOC(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}
+			break;
+		case 14:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = cordService.updateCord(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CORD"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = cordService.obtenerCORD(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 15:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = primService.updatePrim(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"PRIM"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = primService.obtenerPRIM(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 16:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = cadqService.updateCadq(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CADQ"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = cadqService.obtenerCADQ(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 17:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = opacService.updateOpac(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"OPAC"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = opacService.obtenerOPAC(nombre);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 18:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = csinService.updateCsin(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"CSIN"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = csinService.obtenerCSIN(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 19:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = copeService.updateCope(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"COPE"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = copeService.obtenerCOPE(nombre);
+					getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}			
+			break;
+		case 20:
+//			if (validacionBalanza(Integer.parseInt(anioMesArra[0]), anioMesArra[1]) == 1) {
+				respuesta = rifiService.updateRifi(getBaseLayoutRr7);
+				if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+					nombre= claveRR7+"RIFI"+complemento;
+					System.out.println("Ejecutando calculos y generando archivo");
+					ar = rifiService.obtenerRIFI(nombre);
+					getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+					Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+					archivoActualizado = 1;
+					logger.info(Constantes.RESPONSEMESSAGE_OK + " Archivo " + nombre + " generado correctamente" + archivoActualizado);
+				}	
+//			} else {
+//				archivoActualizado = 2;
+//				logger.info(Constantes.RESPONSEMESSAGE_OK +"No existen datos acorde a la fecha " + anioMes + " en la Balanza Contable para proceder con el calculo del reporte " + nombre + ".", 1);
+//			}
+			break;
+		case 21:
+			respuesta = baseService.updateBase(getBaseLayoutRr7);
+			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"BASE"+complemento;
+				System.out.println("Ejecutando calculos y generando archivo");
+				ar = baseService.obtenerBASE(nombre);
+				getRr7Archivo =findByIdArchivo(idArchivo,anioMes);
+				Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+			}
+			break;
+		case 22:
+//			respuesta = ccmpService.updateCcmp(getBaseLayoutRr7); //ARCHIVO 100% MANUAL 
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"CCMP"+complemento;
+				System.out.println("Ejecutando calculos y generando archivo");
+				ar = ccmpService.obtenerCCMP(nombre);
+				getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+				Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,"Archivo Ccmp generado correctamente" , 1);
+
+//			}
+			break;
+		case 23:
+			respuesta = fopaService.updateFopa(getBaseLayoutRr7);
+			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"FOPA"+complemento;
+				System.out.println("Ejecutando calculos y generando archivo");
+				ar = fopaService.obtenerFOPA(nombre);
+				getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+				Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes); 
+			}
+			break;
+		case 24:
+//			respuesta = fondService.updateFond(getBaseLayoutRr7);/////ARCHIVO 100% MANUAL
+//			if (respuesta.getMensaje().equalsIgnoreCase("ok")) {
+				nombre= claveRR7+"FOND"+complemento;
+				System.out.println("Ejecutando calculos y generando archivo");
+				ar = fondService.obtenerFOND(nombre);
+				getRr7Archivo = findByIdArchivo(idArchivo,anioMes);
+				Accion(ar, getRr7Archivo, idArchivo, fecha,anioMes);
+				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK,"Archivo Fond generado correctamente" , 1);
+
+//			}
+			break;
+
+		default:
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No existe Archivo seleccionado", null);
+		}
+		return archivoActualizado;
+	}
+	
+	/**
+	 * VALIDA: SI EXISTE ARCHIVO VA A ACTUALIZAR, EN CASO CONTRARIO VA A INSERTAR*
+	 * ***/
+	public int Accion(ArchivoRespuesta ar, Rr7ArchivoHistorico getRr7Archivo , int id, String fecha,String anioMes) {
+		int archivoActualizado = 0;
+		Rr7ArchivoHistorico newRr7Archivo = new Rr7ArchivoHistorico();
+		
+		String [] anioMesArra = anioMes.split("-");
+		
+		if (ar != null) { 
+			if (getRr7Archivo != null ) {
+				logger.info("EL ARCHIVO BASE 64 YA EXISTE EN LA TABLA HISTORICA, POR LO QUE SE VA A ACTUALIZAR");
+				newRr7Archivo.setFechaRegistro(fecha);
+				newRr7Archivo.setBase64Rr7(ar.getBaseArchivo());
+				newRr7Archivo.setAnio(anioMesArra[0]);
+				newRr7Archivo.setIdArchivo(""+id);
+				newRr7Archivo.setMes(anioMesArra[1]);
+				update(newRr7Archivo);
+				logger.info("REGISTRO DEL ARCHIVO BASE 64 ACTUALIZADO CORRECTAMENTE");
+				archivoActualizado = 1;
+			}
+			else {
+				logger.info("EL ARCHIVO BASE 64 ES NUEVO, SE PROCEDE A INSERTAR");
+				newRr7Archivo.setFechaRegistro(fecha);
+				newRr7Archivo.setBase64Rr7(ar.getBaseArchivo());
+				newRr7Archivo.setAnio(anioMesArra[0]);
+				newRr7Archivo.setIdArchivo(""+id);
+				newRr7Archivo.setMes(anioMesArra[1]);
+				insert(newRr7Archivo);
+				logger.info("REGISTRO DEL ARCHIVO BASE 64 INSERTADO CORRECTAMENTE");
+				archivoActualizado = 1;
+			}
+		}		
+	return archivoActualizado;
+	}
+
+	public void insert(Rr7ArchivoHistorico ah) {
+		jdbcTemplate.update(
+				"INSERT INTO RR7ARCHIVOHISTORICO (FECHAREGISTRO, BASE64RR7,ANIO, MES, IDARCHIVO) VALUES (?, ?, ?, ?, ?)",
+				ah.getFechaRegistro(), ah.getBase64Rr7(), ah.getAnio(), ah.getMes(), ah.getIdArchivo());
+	}
+
+	public void update(Rr7ArchivoHistorico ah) {
+		String sql = "Update RR7ARCHIVOHISTORICO Set FECHAREGISTRO = ? ,BASE64RR7 = ? ,ANIO = ? ,MES = ? Where IDARCHIVO = ?";
+
+		jdbcTemplate.update(sql,ah.getFechaRegistro(), ah.getBase64Rr7(), ah.getAnio(), ah.getMes(), ah.getIdArchivo());	
+	}
+	
+	/**CONSULTAMOS EL HISTORICO Y DEVOLVEMOS VALOR SI ES QUE EXISTE EL MISMO ARCHIVO(REPORTE) EN LA TABLA HISTORICO**/
+	public Rr7ArchivoHistorico findByIdArchivo(int id ,String anioMes) {
+
+		String [] anioMesArray = anioMes.split("-");
+
+		String query = "select * from RR7ARCHIVOHISTORICO where IDARCHIVO = "+ id +" and ANIO = '"+anioMesArray[0]+"' AND MES = '"+anioMesArray[1]+"'";
+
+		List<Map<String,Object>> rowsDat = jdbcTemplate.queryForList(query);
+		
+		logger.info("BUSCANDO REGISTRO DE ARCHIVO TXT BASE 64 EN HISTORICO");
+		Rr7ArchivoHistorico result = null ;
+
+		if (rowsDat.size() != 0 ) {
+			for (Iterator iterator = rowsDat.iterator(); iterator.hasNext();) {
+				Map<String, Object> map = (Map<String, Object>) iterator.next();
+				result = new Rr7ArchivoHistorico();
+				result.setId(Integer.parseInt(map.get("ID").toString()));
+				result.setFechaRegistro(map.get("FECHAREGISTRO").toString());
+				result.setBase64Rr7(map.get("BASE64RR7").toString());
+				result.setIdArchivo(map.get("IDARCHIVO").toString());
+			}
+		}
+		return result;
+	}
+}

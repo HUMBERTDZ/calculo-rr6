@@ -1,0 +1,14 @@
+package com.ws_rr7_generico.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.Base;
+
+@Repository
+public interface BaseDAO extends JpaRepository<Base, Integer>{
+
+
+	
+	
+}

@@ -1,0 +1,144 @@
+package com.ws_rr7_generico.rest;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ws_rr7_generico.models.CCArchivosRR7;
+import com.ws_rr7_generico.services.RR7ARCHIVOHISTORICOService;
+import com.ws_rr7_generico.services.ReportesRegulatoriosService;
+import com.ws_rr7_generico.services.ValArchivosRR7Service;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@RestController
+@CrossOrigin
+@RequestMapping("reportes")
+public class reportesRegulatorios {
+
+	@Autowired
+	private ReportesRegulatoriosService reportesRegulatoriosService;
+
+	@Autowired
+	private RR7ARCHIVOHISTORICOService reportesRr7Historico;
+	
+	@Autowired
+	private ValArchivosRR7Service valArchivosRR7;
+	
+	final static Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+
+//	@ApiOperation(value = "Valida Origen de Datos para el calculo del vigor total", notes = "Si alguna tabla no cointiene información de todos los meses, no se puede calcular")
+//	@ApiResponses(value = {
+//			@ApiResponse(code = -1, message = "Ha ocurrido un error"),
+//			@ApiResponse(code = 1, message = "Datos procesados correctamente"),
+//			@ApiResponse(code = 0, message = "Origen de datos vacio"),
+//			@ApiResponse(code = 2, message = "Los registros ya existen, ¿Desea recalcular?")
+//	  	  
+//	})
+	@PostMapping("/procesarRR7/{idsArchivos}/{anioMes}")
+	public ResponseMessage procesar(@PathVariable("idsArchivos") int[] idsArchivos,@PathVariable("anioMes") String anioMes
+			) throws IOException, ParseException {
+
+		ResponseMessage respuesta = null;
+		if (idsArchivos != null && idsArchivos.length != 0) {
+			if (idsArchivos.length < 0 || idsArchivos.length > 29) {
+				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Cantidad de archivos no valido", null);
+			} else {
+				respuesta = reportesRegulatoriosService.respuestaRR7(idsArchivos,anioMes);
+			}
+		} else {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No hay archivos seleccionados", null);
+		}
+		return respuesta;
+	}
+	
+	@PostMapping("/procesarValidaciones/{anioMes}")
+	public ResponseMessage procesarValidaciones(@PathVariable("anioMes") String anioMes) throws IOException, ParseException {
+		ResponseMessage respuesta = valArchivosRR7.ValidarArchivosConCMBG(anioMes);
+		return respuesta;
+	}
+	
+	
+	@PostMapping("/consultarRR7/{anioMes}") 
+	public ResponseMessage consultarRR7(@PathVariable("anioMes") String anioMes) throws IOException, ParseException {
+		ResponseMessage respuesta = null;
+		List<CCArchivosRR7> listaReportes = null;
+
+		try {
+			listaReportes = reportesRr7Historico.mostrarArchivosRR7(anioMes);
+
+			if (!listaReportes.isEmpty() || listaReportes.size() > 0) {					
+				respuesta = new ResponseMessage("0", Constantes.RESPONSEMESSAGE_OK, listaReportes);
+			}
+			else {
+				respuesta = new ResponseMessage("1", "No existen reportes", null);
+			}
+		} catch (Exception e) {
+			respuesta = new ResponseMessage("-1", Constantes.RESPONSEMESSAGE_ERROR, null);
+		}
+
+		return respuesta;
+	}
+
+	@PostMapping("/updateFiles/{idsArchivos}/{anioMes}")
+	public ResponseMessage updateFiles(@PathVariable("idsArchivos") int[] idsArchivos, 
+			@PathVariable("anioMes")String anioMes) throws IOException {
+		ResponseMessage respuesta = null;
+		
+		if (idsArchivos != null && idsArchivos.length != 0) {
+			if (idsArchivos.length < 0 || idsArchivos.length > 29) {
+				respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Cantidad de archivos no valido", null);
+			} else {				
+				respuesta = reportesRegulatoriosService.updateFiles(idsArchivos, anioMes);
+			}
+		} else {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "No hay archivos seleccionados", null);
+		}
+		return respuesta;
+	}
+
+//	@PostMapping("/PruebaBaseLayout")
+//	public ResponseMessage PruebaBaseLayout() throws IOException, ParseException {
+//		ResponseMessage respuesta = null;
+//		Map<String, Object> mapa = new HashMap<String, Object>();
+//		mapa.put("registrosBaseLayout", baseLayoutRr7Service.obtenerRegistros());
+//		respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, null, mapa);
+//		// generarArchivo();
+//		return respuesta;
+//	}
+	
+//	@SuppressWarnings("unchecked")
+//	public void generarArchivo() throws IOException {
+//		String json = "{\"archivo\":\"MjExfDAxfDAyfDAxfDEwfDMwMDB8MDMwfDMzMnwwMDAwfDAuMHwwLjB8MC4wfDAuMHw7DQoyMTF8MDF8MDJ8MDJ8MTB8MzAwMHwwMzB8MzMxfDAwMDB8MS4wfDAuMHwwLjB8MS4wfDsNCjIxMXwwMXwwMnwwM3wxMHwzMDAwfDAzMHwzMzN8MDAwMHwyLjB8MC4wfDAuMHwyLjB8Ow0KMjExfDAyfDAyfDAxfDEwfDMwMDB8MDMwfDMzMnwwMDAwfDMuMHwwLjB8MC4wfDMuMHw7DQoyMTF8MDJ8MDJ8MDJ8MTB8MzAwMHwwMzB8MzMxfDAwMDB8NC4wfDAuMHwwLjB8NC4wfDsNCjIxMXwwMnwwMnwwM3wxMHwzMDAwfDAzMHwzMzN8MDAwMHw1LjB8MC4wfDAuMHw1LjB8Ow0KMjExfDA0fDAwfDAwfDEwfDMwMDB8MDMwfDMzMXwwMDAwfDYuMHwwLjB8MC4wfDYuMHw7DQoyMTF8MDR8MDB8MDB8MTB8MzAwMHwwMzB8MzMyfDAwMDB8Ny4wfDAuMHwwLjB8Ny4wfDsNCjIxMXwwNHwwMHwwMHwxMHwzMDAwfDAzMHwzMzN8MDAwMHw4LjB8MC4wfDAuMHw4LjB8Ow0KMjEyfDAxfDAyfDAwfDEwfDMwMDB8MDMwfDMzMXwwMDAwfDkuMHwwLjB8MC4wfDkuMHw7DQoyMTJ8MDJ8MDF8MDB8MTB8MzAwMHwwMzB8MzMyfDAwMDB8MTAuMHwwLjB8MC4wfDEwLjB8Ow0KMjEyfDAzfDAyfDAwfDEwfDMwMDB8MDMwfDMzMXwwMDAwfDExLjB8MC4wfDAuMHwxMS4wfDsNCjIxMnwwNHwwMnwwMHwxMHwzMDAwfDAzMHwzMzJ8MDAwMHwxMi4wfDAuMHwwLjB8MTIuMHw7DQo=\"}\n";
+//		ObjectMapper mapper = new ObjectMapper();
+//		Map<String, String> jsonMap = mapper.readValue(json, Map.class);
+//		String archivoBase64 = jsonMap.get("archivo");
+//		byte[] archivoByte = Base64.getDecoder().decode(archivoBase64);
+//		OutputStream out = new FileOutputStream("D:\\LAYOUT.txt");
+//		out.write(archivoByte);
+//		out.close();
+//	}
+
+//	@PostMapping("/saveObjectFile/{idArchivo}/{lista}")
+//	public ResponseMessage saveObjectFile2(int idArchivo,Object lista) throws IOException{
+//		ResponseMessage respuesta = null;
+//		
+//		int id = 23;
+//		
+//		List<Fopa> ListaFopa = fopaDAO.findAll(Sort.by("nivel1").and(Sort.by("nivel2").and(Sort.by("nivel3").and(Sort.by("nivel4"))
+//				.and(Sort.by("moneda")).and(Sort.by("nivelfondos")))));
+//
+//		respuesta = reportesRegulatoriosService.saveObjectList(id, ListaFopa);
+//		
+//		return respuesta;
+//	}
+
+}

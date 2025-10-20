@@ -1,0 +1,310 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.InveDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Ccmp;
+import com.ws_rr7_generico.models.Inve;
+import com.ws_rr7_generico.models.Irre;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.INVEService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class INVEServiceImpl implements INVEService {
+
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private InveDAO inveDAO;
+	String nivel1 = "0";
+	String nivel2 = "0";
+	String nivel3 = "0";
+	String nivel4 = "0";
+	int moneda = 0;
+	int consecutivo =0 ;
+	String clasificacion ="0" ;
+	String tipo_org = "0";
+	String cve_org = "0";
+	String contrato = "0";
+	int afectacion =0;
+	String isin = "0";
+	String parametriz = "0";
+	String cve_emisor = "0";
+	String serie = "0";
+	String tipo_valor ="0" ;
+	String descripc = "0";
+	String liquidez = "0";
+	String fch_emi = "0";
+	String fch_adq = "0";
+	String fch_vto = "0";
+	int valor_nom = 0;
+	int titulos = 0;
+	int cto_adq = 0;
+	int val_cot = 0;
+	int precio_uni = 0;
+	int tasa_val = 0;
+	int inc_dec_valua = 0;
+	int period_amort = 0;
+	int tasa_amort = 0;
+	int premio = 0;
+	int plazo = 0;				
+	String mda_base = "0";
+	String calif = "0";
+	int int_x_dev = 0;
+	int plazo_cupon = 0;
+	int tasa_cupon = 0;
+	String cve_tas_refe = "0";
+	int deterioro = 0;
+	int d_x_int = 0;
+	int total_Act = 0;
+	String tipo_emisora = "0";
+	String califoncpt = "0";
+	String regla_cupon = "0";
+	int tit_amp_der = 0;
+	int tasa_pact_der =0 ;
+	int div_x_cob = 0;
+	String nivel_fondos = "0";
+	String int_lp_cubre_cp = "0";
+	String nota_estructurada = "0";
+	String tipo_nota_estructurada = "0";
+	String porta_seg_flex = "0";
+	int tasa_garanti = 0;
+	String negociable = "0";
+	String tipo_garantia_cobertura = "0";
+	String cve_ponderador_contraparte = "0";
+	String califongaran = "0";
+	String cve_ponderador_garantia = "0";
+	int valor_conversion_a_riesgocpt = 0;
+	int valor_garan_cober = 0;
+	String calce = "0";
+	int inc_x_valua_CBI = 0;
+	int inc_x_valua_RCS = 0;
+	int inc_x_valua_OP = 0;
+
+	String cadena = nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(String.valueOf(moneda)).concat("|").concat(String.valueOf(consecutivo)).concat("|").concat(clasificacion).concat("|")
+			.concat(tipo_org).concat("|").concat(cve_org).concat("|").concat(contrato).concat("|")
+			.concat(""+afectacion).concat("|").concat(isin).concat("|").concat(parametriz).concat("|")
+			.concat(cve_emisor).concat("|").concat(serie).concat("|").concat(tipo_valor).concat("|")
+			.concat(descripc).concat("|").concat(liquidez).concat("|").concat(fch_emi).concat("|")
+			.concat(fch_adq).concat("|").concat(fch_vto).concat("|").concat(""+valor_nom).concat("|")
+			.concat(""+titulos).concat("|").concat(""+cto_adq).concat("|").concat(""+val_cot).concat("|")
+			.concat(""+precio_uni).concat("|").concat(""+tasa_val).concat("|").concat(""+inc_dec_valua).concat("|")
+			.concat(""+period_amort).concat("|").concat(""+tasa_amort).concat("|").concat(""+premio).concat("|")
+			.concat(""+plazo).concat("|").concat(mda_base).concat("|").concat(calif).concat("|")
+			.concat(""+int_x_dev).concat("|").concat(""+plazo_cupon).concat("|").concat(""+tasa_cupon).concat("|")
+			.concat(cve_tas_refe).concat("|").concat(""+deterioro).concat("|").concat(""+d_x_int).concat("|")
+			.concat(""+total_Act).concat("|").concat(tipo_emisora).concat("|").concat(califoncpt).concat("|")
+			.concat(regla_cupon).concat("|").concat(""+tit_amp_der).concat("|").concat(""+tasa_pact_der).concat("|")
+			.concat(""+div_x_cob).concat("|").concat(nivel_fondos).concat("|").concat(int_lp_cubre_cp).concat("|")
+			.concat(nota_estructurada).concat("|").concat(tipo_nota_estructurada).concat("|").concat(porta_seg_flex).concat("|")
+			.concat(""+tasa_garanti).concat("|").concat(negociable).concat("|").concat(tipo_garantia_cobertura).concat("|")
+			.concat(cve_ponderador_contraparte).concat("|").concat(califongaran).concat("|").concat(cve_ponderador_garantia).concat("|")
+			.concat(""+valor_conversion_a_riesgocpt).concat("|").concat(""+valor_garan_cober).concat("|").concat(calce).concat("|")
+			.concat(""+inc_x_valua_CBI).concat(""+inc_x_valua_RCS).concat("|").concat(""+inc_x_valua_OP).concat("|;");
+	
+	@Override
+	 public ArchivoRespuesta obtenerINVE(String nombre,String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtInve(nombre,anioMes));
+		ar.setNombreArchivo(nombre);
+		System.out.println("Obtener INVE exitoso");
+		return ar;
+	}
+	
+	public String GenerarTxtInve(String nombre,String anioMes) throws IOException {
+		String response = "";
+
+		System.out.println(anioMes);
+		
+		//List<Inve> ListaInve = inveDAO.findByAnioMes(anioMes);
+		List<Inve> ListaInve = inveDAO.findByAnioMes(anioMes);
+		System.out.println(ListaInve.size());
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		int conse = 1;
+		if (ListaInve != null && ListaInve.size() != 0) {
+			for (Inve Lista : ListaInve) {
+						
+						nivel1 = Lista.getNivel1()==null? "":Lista.getNivel1();
+						nivel2 = Lista.getNivel2()==null? "":Lista.getNivel2();
+						nivel3 = Lista.getNivel3()==null? "":Lista.getNivel3();
+						nivel4 = Lista.getNivel4()==null? "":Lista.getNivel4();
+						moneda = Lista.getMoneda()==null? 0:Lista.getMoneda();
+						consecutivo = conse;//Lista.getConsecutiv()==null? 0:Lista.getConsecutiv();
+						clasificacion = Lista.getClasificacion()==null? "":Lista.getClasificacion();
+						tipo_org = Lista.getTipoOrg()==null? "":Lista.getTipoOrg();
+						cve_org = Lista.getCveOrg()==null? "":Lista.getCveOrg();
+						contrato = Lista.getContrato()==null? "":Lista.getContrato();
+						afectacion = Lista.getAfectacion()==null? 0:Lista.getAfectacion();
+						isin = Lista.getIsin()==null? "":Lista.getIsin();
+						parametriz = Lista.getParamtriz()==null? "":Lista.getParamtriz();
+						cve_emisor = Lista.getCveEmisor()==null? "":Lista.getCveEmisor();
+						serie = Lista.getSerie()==null? "":Lista.getSerie();
+						tipo_valor = Lista.getTipoValor()==null? "":Lista.getTipoValor();
+						descripc = Lista.getDescrip()==null? "":Lista.getDescrip();
+						liquidez = Lista.getLiquidez()==null? "":Lista.getLiquidez();
+						fch_emi = Lista.getFchEmi()==null? "":Lista.getFchEmi();
+						fch_adq = Lista.getFchAdq()==null? "":Lista.getFchAdq();
+						fch_vto = Lista.getFchVto()==null? "":Lista.getFchVto();
+						valor_nom = Lista.getValorNom()==null? 0:Lista.getValorNom();
+						titulos = Lista.getTitulos()==null? 0:Lista.getTitulos();
+						cto_adq = Lista.getCtoAdq()==null? 0:Lista.getCtoAdq();
+						val_cot = Lista.getValMercado()==null? 0:Lista.getValMercado();
+						precio_uni = Lista.getPrecioUni()==null? 0:Lista.getPrecioUni();
+						tasa_val = Lista.getTasaVal()==null? 0:Lista.getTasaVal();
+						inc_dec_valua = Lista.getIncDelVal()==null? 0:Lista.getIncDelVal();
+						period_amort = Lista.getPeriodAmort()==null? 0:Lista.getPeriodAmort();
+						tasa_amort = Lista.getTasaAmort()==null? 0:Lista.getTasaAmort();
+						premio = Lista.getPremio()==null? 0:Lista.getPremio();
+						plazo = Lista.getPlazo()==null? 0:Lista.getPlazo();
+						mda_base = Lista.getMdaBase()==null? "":Lista.getMdaBase();
+						calif = Lista.getCalif()==null? "":Lista.getCalif();
+						int_x_dev = Lista.getInXDev()==null? 0:Lista.getInXDev();
+						plazo_cupon = Lista.getPlazoCupon()==null? 0:Lista.getPlazoCupon();
+						tasa_cupon = Lista.getTasaCupo()==null? 0:Lista.getTasaCupo();
+						cve_tas_refe = Lista.getCveTasRef()==null? "":Lista.getCveTasRef();
+						deterioro = Lista.getDeterioro()==null? 0:Lista.getDeterioro();
+						d_x_int = Lista.getdXInt()==null? 0:Lista.getdXInt();
+						total_Act = Lista.getTotalAct()==null? 0:Lista.getTotalAct();
+						tipo_emisora = Lista.getTipoEmisora()==null? "":Lista.getTipoEmisora();
+						califoncpt = Lista.getCalifoncpt()==null? "":Lista.getCalifoncpt();
+						regla_cupon = Lista.getReglaCupon()==null? "":Lista.getReglaCupon();
+						tit_amp_der = Lista.getTiiAmpDer()==null? 0:Lista.getTiiAmpDer();
+						tasa_pact_der = Lista.getTasaPactDer()==null? 0:Lista.getTasaPactDer();
+						div_x_cob = Lista.getDivXCob()==null? 0:Lista.getDivXCob();
+						nivel_fondos = Lista.getNivelFondos()==null? "":Lista.getNivelFondos();
+						int_lp_cubre_cp = Lista.getIntLpCubreCp()==null? "":Lista.getIntLpCubreCp();
+						nota_estructurada = Lista.getNotaEstructurada()==null? "":Lista.getNotaEstructurada();
+						tipo_nota_estructurada = Lista.getTipoNotaEstructurada()==null? "":Lista.getTipoNotaEstructurada();
+						porta_seg_flex = Lista.getPortaSegFlex()==null? "":Lista.getPortaSegFlex();
+						tasa_garanti = Lista.getTasaGaranti()==null? 0:Lista.getTasaGaranti();
+						negociable = Lista.getNegociable()==null? "":Lista.getNegociable();
+						tipo_garantia_cobertura = Lista.getTipoGarantiaCobertura()==null? "":Lista.getTipoGarantiaCobertura();
+						cve_ponderador_contraparte = Lista.getCvePonderadorContraparte()==null? "":Lista.getCvePonderadorContraparte();
+						califongaran = Lista.getCalifongaran()==null? "":Lista.getCalifongaran();
+						cve_ponderador_garantia = Lista.getVePonderadorGarantia()==null? "":Lista.getVePonderadorGarantia();
+						valor_conversion_a_riesgocpt = Lista.getValorConversionARiesgocpt()==null? 0:Lista.getValorConversionARiesgocpt();
+						valor_garan_cober = Lista.getValorGaranCober()==null? 0:Lista.getValorGaranCober();
+						calce = Lista.getCalce()==null? "":Lista.getCalce();
+						inc_x_valua_CBI = Lista.getIncXValuaCbi()==null? 0:Lista.getIncXValuaCbi();
+						inc_x_valua_RCS = Lista.getIncXValuaRcs()==null? 0:Lista.getIncXValuaRcs();
+						inc_x_valua_OP = Lista.getIncXValuaOp()==null? 0:Lista.getIncXValuaOp();
+						
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(String.valueOf(moneda)).concat("|").concat(String.valueOf(consecutivo)).concat("|").concat(clasificacion).concat("|")
+						.concat(tipo_org).concat("|").concat(cve_org).concat("|").concat(contrato).concat("|")
+						.concat(""+afectacion).concat("|").concat(isin).concat("|").concat(parametriz).concat("|")
+						.concat(cve_emisor).concat("|").concat(serie).concat("|").concat(tipo_valor).concat("|")
+						.concat(descripc).concat("|").concat(liquidez).concat("|").concat(fch_emi).concat("|")
+						.concat(fch_adq).concat("|").concat(fch_vto).concat("|").concat(""+valor_nom).concat("|")
+						.concat(""+titulos).concat("|").concat(""+cto_adq).concat("|").concat(""+val_cot).concat("|")
+						.concat(""+precio_uni).concat("|").concat(""+tasa_val).concat("|").concat(""+inc_dec_valua).concat("|")
+						.concat(""+period_amort).concat("|").concat(""+tasa_amort).concat("|").concat(""+premio).concat("|")
+						.concat(""+plazo).concat("|").concat(mda_base).concat("|").concat(calif).concat("|")
+						.concat(""+int_x_dev).concat("|").concat(""+plazo_cupon).concat("|").concat(""+tasa_cupon).concat("|")
+						.concat(cve_tas_refe).concat("|").concat(""+deterioro).concat("|").concat(""+d_x_int).concat("|")
+						.concat(""+total_Act).concat("|").concat(tipo_emisora).concat("|").concat(califoncpt).concat("|")
+						.concat(regla_cupon).concat("|").concat(""+tit_amp_der).concat("|").concat(""+tasa_pact_der).concat("|")
+						.concat(""+div_x_cob).concat("|").concat(nivel_fondos).concat("|").concat(int_lp_cubre_cp).concat("|")
+						.concat(nota_estructurada).concat("|").concat(tipo_nota_estructurada).concat("|").concat(porta_seg_flex).concat("|")
+						.concat(""+tasa_garanti).concat("|").concat(negociable).concat("|").concat(tipo_garantia_cobertura).concat("|")
+						.concat(cve_ponderador_contraparte).concat("|").concat(califongaran).concat("|").concat(cve_ponderador_garantia).concat("|")
+						.concat(""+valor_conversion_a_riesgocpt).concat("|").concat(""+valor_garan_cober).concat("|").concat(calce).concat("|")
+						.concat(""+inc_x_valua_CBI).concat(""+inc_x_valua_RCS).concat("|").concat(""+inc_x_valua_OP).concat("|;"));//64
+				bw.newLine();
+				conse++;
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo INVE creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public String saveList(List<Inve> lista) {
+		inveDAO.saveAll(lista);
+		return "ok";
+	}
+
+	@Override
+	public ResponseMessage updateInve(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Inve> getInve = inveDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Inve inve: getInve) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> (producer.getCtaQtoNivNvoCat()+producer.getTipoMoneda()).
+	                		equals(inve.getNivel1()+inve.getNivel2()+inve.getNivel3()+inve.getNivel4()+inve.getMoneda()
+	                		+inve.getAfectacion())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				inve.setTotalAct((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				inve.setTotalAct(0);
+			}			
+		}
+		if (inveDAO.saveAll(getInve) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Inve actualizado ", null);
+		}		
+		return respuesta;
+	}
+	
+	@Override
+	public int getExistRecords(String anioMes) {
+		int existenRegistros = 0;
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM INVE WHERE ANIOMES = '"+anioMes+"' ;";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =  rowSet.getInt("EXISTEN_REGISTROS");
+		}
+		return existenRegistros;
+	}
+
+	
+}

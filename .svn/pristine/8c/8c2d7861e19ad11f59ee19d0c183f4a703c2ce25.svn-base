@@ -1,0 +1,49 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.ws_rr7_generico.dao.BaseLayoutRr7DAO;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.BaseLayoutRr7Service;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class BaseLayoutRr7ServiceImpl implements BaseLayoutRr7Service{
+
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired 
+	private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private BaseLayoutRr7DAO baseLayoutRr7DAO;
+
+	@Override
+	public List<BaseLayoutRr7> obtenerRegistros() {
+		return baseLayoutRr7DAO.findAll();
+	}
+
+
+	@Override
+	public int getExistDataBalanzaContableByAnioMes(int anio, String mes) {
+		int existenRegistros = 0;
+
+		String query = " SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM BALANZACONTABLE WHERE ANIO = " + anio + "  AND MES = '" + mes + "' ";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =  rowSet.getInt("EXISTEN_REGISTROS");
+		}
+		return existenRegistros;
+	}
+}
+

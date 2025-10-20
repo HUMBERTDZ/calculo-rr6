@@ -1,0 +1,21 @@
+package com.ws_rr7_generico.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.Csin;
+
+@Repository
+public interface CsinDAO extends JpaRepository<Csin, Integer>{
+
+	/******************************************************************************************************
+	******************************* OBTENCION LISTA ORDENADA***************************************/		
+	@Query(value = "select * from csin order by CLAVE_CTO_SIN ,CVE_RAMO,CVE_SUBSUBRAMO", nativeQuery = true)
+	List<Csin> obtenerCMER();
+
+	
+	
+}

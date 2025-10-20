@@ -1,0 +1,122 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.CopeDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cope;
+import com.ws_rr7_generico.models.Csin;
+import com.ws_rr7_generico.services.COPEService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class COPEServiceImpl implements COPEService {
+	@Autowired
+	private CopeDAO copeDAO;
+	String nivel1="0",nivel2="0",nivel3="0",nivel4="0",claveCtoOper="0",subClaveCtoOper="0",
+			operacion="0",cveRamo="0",cveSubRam="0",cveSubSubRamo="0", moneda="0";
+	int saldo=0;
+	
+	String cadena = nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(moneda).concat("|").concat(claveCtoOper).concat("|").concat(subClaveCtoOper).concat("|")
+			.concat(operacion).concat("|").concat(cveRamo).concat("|").concat(cveSubRam).concat("|").concat(cveSubSubRamo).concat("|")
+			.concat(String.valueOf(saldo)).concat("|;");
+
+	@Override
+	 public ArchivoRespuesta obtenerCOPE(String nombre) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtCope(nombre));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+	public String GenerarTxtCope(String nombre) throws IOException {
+		String response = "";
+		List<Cope> ListaCope = copeDAO.findAll(Sort.by("nivel1").and(Sort.by("nivel2").and(Sort.by("nivel3").and(Sort.by("nivel4"))
+				.and(Sort.by("moneda")).and(Sort.by("claveCtoOper")).and(Sort.by("subClaveCtoOper")).and(Sort.by("operacion"))
+				.and(Sort.by("cveRamo")).and(Sort.by("cveSubRam")).and(Sort.by("cveSubSubRamo")))));
+				
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaCope != null && ListaCope.size() != 0) {
+			for (Cope Lista : ListaCope) {
+
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				claveCtoOper = Lista.getClaveCtoOper();
+				subClaveCtoOper = Lista.getSubClaveCtoOper();
+				operacion = Lista.getOperacion();
+				cveRamo = Lista.getCveRamo();
+				cveSubRam = Lista.getCveSubRam();
+				cveSubSubRamo = Lista.getCveSubSubRamo();
+				saldo = Lista.getSaldo();
+				
+				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(moneda).concat("|").concat(claveCtoOper).concat("|").concat(subClaveCtoOper).concat("|")
+						.concat(operacion).concat("|").concat(cveRamo).concat("|").concat(cveSubRam).concat("|").concat("0").concat(cveSubSubRamo).concat("|")
+						.concat(String.valueOf(saldo)).concat("|;"));
+				bw.newLine();
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo COPE creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+	@Override
+	public ResponseMessage updateCope(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Cope> getCope = copeDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Cope cope: getCope) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> (producer.getCtaQtoNivNvoCat()+producer.getTipoMoneda()+producer.getRamo()+producer.getSubramo()+producer.getSubsubramo()).
+	                		equals(cope.getNivel1()+cope.getNivel2()+cope.getNivel3()+cope.getNivel4()+cope.getMoneda()
+	                		+cope.getCveRamo()+cope.getCveSubRam()+cope.getCveSubSubRamo())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				cope.setSaldo((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				cope.setSaldo(0);
+			}			
+		}
+		if (copeDAO.saveAll(getCope) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Cope actualizado ", 1);
+		}		
+		return respuesta;
+	}
+}

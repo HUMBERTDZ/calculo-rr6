@@ -1,0 +1,218 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.IndeDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Inde;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.INDEService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class INDEServiceImpl implements INDEService {
+	@Autowired
+	private IndeDAO indeDAO;
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	
+	String nivel1 = "0",nivel2 = "0",nivel3 = "0",nivel4 = "0",moneda = "0",consecutiv = "0",afectacion = "0",mdaBase = "0",
+		   fchAdq = "0",liquidez = "0",isin = "0",emisor = "0",descripc = "0",parametriz = "0",serie = "0",tipoValor = "0",
+		   numContrs = "0",fchEmi = "0",fchVto = "0",tasaRdto = "0",calific = "0",tipoMod = "0",tipoOrg = "0",contrato = "0",
+		   claveOrg = "0",precioEj = "0",indEfect = "0",ctoAdqPosicionActiva = "0",ctoAdqPosicionPasiva = "0",netoAdquisicion = "0",
+		   cotizacionPosicionActiva = "0",cotizacionPosicionPasiv = "0",netoCotizacion = "0",primaPagadaOpciones = "0",
+		   primaEvaluadaOpciones = "0",incrementoValuación = "0",aportGarantDerivados = "0",consecDv = "0",montoEfecto = "0",		   
+		   nivelFondos = "0",títulos = "0",tipoEmisora = "0",precioEjPas = "0",monedaAct = "0",monedaPas = "0",pzoPagoAct = "0",
+		   pzoPagoPas = "0",tipoModPas = "0",portaSegFlex = "0",tasaGaranti = "0",calce = "0",tasaPactadaSwapAct = "0",tasaPactadaSwapPas = "0";
+	
+	String cadena =	nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(moneda).concat("|").concat(consecutiv).concat("|").concat(afectacion).concat("|").concat(mdaBase).concat("|")
+			.concat(fchAdq).concat("|").concat(liquidez).concat("|").concat(isin).concat("|").concat(emisor).concat("|")
+			.concat(descripc).concat("|").concat(parametriz).concat("|").concat(serie).concat("|").concat(tipoValor).concat("|")
+			.concat(numContrs).concat("|").concat(fchEmi).concat("|").concat(fchVto).concat("|").concat(tasaRdto).concat("|")
+			.concat(calific).concat("|").concat(tipoMod).concat("|").concat(tipoOrg).concat("|").concat(contrato).concat("|")
+			.concat(claveOrg).concat("|").concat(precioEj).concat("|").concat(indEfect).concat("|").concat(ctoAdqPosicionActiva).concat("|")
+			.concat(ctoAdqPosicionPasiva).concat("|").concat(netoAdquisicion).concat("|").concat(cotizacionPosicionActiva).concat("|")
+			.concat(cotizacionPosicionPasiv).concat("|").concat(netoCotizacion).concat("|").concat(primaPagadaOpciones).concat("|")
+			.concat(primaEvaluadaOpciones).concat("|").concat(incrementoValuación).concat("|").concat(aportGarantDerivados).concat("|")
+			.concat(consecDv).concat("|").concat(montoEfecto).concat("|").concat(nivelFondos).concat("|").concat(títulos).concat("|")
+			.concat(tipoEmisora).concat("|").concat(precioEjPas).concat("|").concat(monedaAct).concat("|").concat(monedaPas).concat("|")
+			.concat(pzoPagoAct).concat("|").concat(pzoPagoPas).concat("|").concat(tipoModPas).concat("|").concat(portaSegFlex).concat("|")
+			.concat(tasaGaranti).concat("|").concat(calce).concat("|").concat(tasaPactadaSwapAct).concat("|").concat(tasaPactadaSwapPas).concat("|;");
+	
+	@Override
+	public ArchivoRespuesta obtenerINDE(String nombre, String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtInde(nombre, anioMes));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+
+	public String GenerarTxtInde(String nombre, String anioMes) throws IOException {
+
+		String response = "";
+		List<Inde> ListaINDE= indeDAO.findByAnioMes(anioMes);
+
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		if (ListaINDE != null && ListaINDE.size() != 0) {
+			for (Inde Lista : ListaINDE) {
+
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				consecutiv = Lista.getConsecutiv();
+				afectacion = Lista.getAfectacion();
+				mdaBase = Lista.getMdaBase();
+				fchAdq = Lista.getFchAdq();
+				String FA = fchAdq.replace("/", "");
+				liquidez = Lista.getLiquidez();
+				isin = Lista.getIsin();
+				emisor = Lista.getEmisor();
+				descripc = Lista.getDescripc();
+				parametriz = Lista.getParametriz();
+				serie = Lista.getSerie();			
+				tipoValor = Lista.getTipoValor();
+				numContrs = Lista.getNumContrs();
+				fchEmi = Lista.getFchEmi();
+				String FE = fchEmi.replace("/", "");
+				fchVto = Lista.getFchVto();
+				String FV = fchVto.replace("/", "");
+				tasaRdto = Lista.getTasaRdto();
+				calific = Lista.getCalific();
+				tipoMod = Lista.getTipoMod();
+				tipoOrg = Lista.getTipoOrg();
+				contrato = Lista.getContrato();
+				claveOrg = Lista.getClaveOrg();
+				precioEj = Lista.getPrecioEj();
+				indEfect = Lista.getIndEfect();
+				ctoAdqPosicionActiva = Lista.getCtoAdqPosicionActiva();
+				ctoAdqPosicionPasiva = Lista.getCtoAdqPosicionPasiva();
+				netoAdquisicion = Lista.getNetoAdquisicion();			
+				cotizacionPosicionActiva = Lista.getCotizacionPosicionActiva();
+				cotizacionPosicionPasiv = Lista.getCotizacionPosicionPasiv();
+				netoCotizacion = Lista.getNetoCotizacion();
+				primaPagadaOpciones = Lista.getPrimaPagadaOpciones();
+				primaEvaluadaOpciones = Lista.getPrimaEvaluadaOpciones();
+				incrementoValuación = Lista.getIncrementoValuación();
+				aportGarantDerivados = Lista.getAportGarantDerivados();
+				consecDv = Lista.getConsecDv();
+				montoEfecto = Lista.getMontoEfecto();
+				nivelFondos = Lista.getNivelFondos();
+				títulos = Lista.getTítulos();
+				tipoEmisora = Lista.getTipoEmisora();
+				precioEjPas = Lista.getPrecioEjPas();
+				monedaAct = Lista.getMonedaAct();
+				monedaPas = Lista.getMonedaPas();
+				pzoPagoAct = Lista.getPzoPagoAct();
+				pzoPagoPas = Lista.getPzoPagoPas();
+				tipoModPas = Lista.getTipoModPas();
+				portaSegFlex = Lista.getPortaSegFlex();
+				tasaGaranti = Lista.getTasaGaranti();
+				calce = Lista.getCalce();
+				tasaPactadaSwapAct = Lista.getTasaPactadaSwapAct();
+				tasaPactadaSwapPas = Lista.getTasaPactadaSwapPas();
+				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(moneda).concat("|").concat(consecutiv).concat("|").concat(afectacion).concat("|").concat(mdaBase).concat("|")
+						.concat(FA).concat("|").concat(liquidez).concat("|").concat(isin).concat("|").concat(emisor).concat("|")
+						.concat(descripc).concat("|").concat(parametriz).concat("|").concat(serie).concat("|").concat(tipoValor).concat("|")
+						.concat(numContrs).concat("|").concat(FE).concat("|").concat(FV).concat("|").concat(tasaRdto).concat("|")
+						.concat(calific).concat("|").concat(tipoMod).concat("|").concat(tipoOrg).concat("|").concat(contrato).concat("|")
+						.concat(claveOrg).concat("|").concat(precioEj).concat("|").concat(indEfect).concat("|").concat(ctoAdqPosicionActiva).concat("|")
+						.concat(ctoAdqPosicionPasiva).concat("|").concat(netoAdquisicion).concat("|").concat(cotizacionPosicionActiva).concat("|")
+						.concat(cotizacionPosicionPasiv).concat("|").concat(netoCotizacion).concat("|").concat(primaPagadaOpciones).concat("|")
+						.concat(primaEvaluadaOpciones).concat("|").concat(incrementoValuación).concat("|").concat(aportGarantDerivados).concat("|")
+						.concat(consecDv).concat("|").concat(montoEfecto).concat("|").concat(nivelFondos).concat("|").concat(títulos).concat("|")
+						.concat(tipoEmisora).concat("|").concat(precioEjPas).concat("|").concat(monedaAct).concat("|").concat(monedaPas).concat("|")
+						.concat(pzoPagoAct).concat("|").concat(pzoPagoPas).concat("|").concat(tipoModPas).concat("|").concat(portaSegFlex).concat("|")
+						.concat(tasaGaranti).concat("|").concat(calce).concat("|").concat(tasaPactadaSwapAct).concat("|").concat(tasaPactadaSwapPas).concat("|;"));
+				bw.newLine();
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo INDE creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public ResponseMessage updateInde(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;
+		
+		List<Inde> getInde = indeDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Inde inde: getInde) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> (producer.getCtaQtoNivNvoCat()+""+producer.getTipoMoneda()+producer.getSubCtaCatAnt()).
+	                		equals(inde.getNivel1()+inde.getNivel2()+inde.getNivel3()+inde.getNivel4()+inde.getMoneda())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				inde.setMontoEfecto(""+baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				inde.setMontoEfecto(""+0);
+			}			
+		}
+		if (indeDAO.saveAll(getInde) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Inde actualizado ", null);
+		}
+		return respuesta;
+	}
+
+	@Override
+	public int getExistRecords(String anioMes) {
+
+		int existenRegistros = 0;
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM INDE WHERE ANIOMES = '" + anioMes + "';";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =  rowSet.getInt("EXISTEN_REGISTROS");
+		}
+
+		return existenRegistros;
+	}
+	
+}

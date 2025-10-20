@@ -1,0 +1,9 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface ValArchivosRR7Service {
+
+	public ResponseMessage ValidarArchivosConCMBG(String anioMes) throws IOException;
+}

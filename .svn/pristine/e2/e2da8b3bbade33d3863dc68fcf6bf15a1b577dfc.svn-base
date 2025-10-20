@@ -1,0 +1,11 @@
+package com.ws_rr7_generico.dao;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import com.ws_rr7_generico.models.Rr7ArchivoHistorico;
+
+@Repository
+public interface Rr7ArchivoHistoricoDAO extends JpaRepository<Rr7ArchivoHistorico, Integer>{
+
+
+}

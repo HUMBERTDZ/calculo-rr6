@@ -1,0 +1,18 @@
+package com.ws_rr7_generico.services;
+
+import java.util.List;
+import java.util.Map;
+import com.ws_rr7_generico.models.CCArchivosRR7;
+import com.ws_rr7_generico.models.Rr7ArchivoHistorico;
+
+public interface RR7ARCHIVOHISTORICOService {
+	List<Rr7ArchivoHistorico> mostrarArchivos();
+
+	List<CCArchivosRR7> mostrarArchivosRR7(String anioMes);
+	
+	public int getExistReporte(int anio, String mes, int idArchivo);
+	
+	boolean existenErroresArchivo(String nombreArchivo, String anioMes);
+	
+	List<Map<String, Object>> getRecordGeneral(String query);
+}

@@ -1,0 +1,15 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.Irre;
+
+public interface IRREService {
+	ArchivoRespuesta obtenerIRRE(String nombre, String anioMes) throws IOException ;
+
+	String saveList(List<Irre> lista);
+	
+	boolean getExistRecords(String anioMes);
+}

@@ -1,0 +1,19 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cred;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface CREDService {
+	ArchivoRespuesta obtenerCRED(String nombre, String anioMEs) throws IOException ;
+	
+	String saveList(List<Cred> lista);
+
+	ResponseMessage updateCred(List<BaseLayoutRr7> getBaseLayoutRr7);
+	
+	boolean getExistRecords(String anioMes);
+}

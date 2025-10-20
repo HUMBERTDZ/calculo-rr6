@@ -1,0 +1,13 @@
+package com.ws_rr7_generico;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class WsRr7GenericoApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(WsRr7GenericoApplication.class, args);
+	}
+
+}

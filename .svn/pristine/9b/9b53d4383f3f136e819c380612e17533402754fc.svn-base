@@ -1,0 +1,18 @@
+package com.ws_rr7_generico.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.ws_rr7_generico.models.Inde;
+
+@Repository
+public interface IndeDAO extends JpaRepository<Inde, Integer>{
+
+	@Query(value = "SELECT * FROM INDE WHERE ANIOMES = :anioMes ORDER BY NIVEL_1, NIVEL_2, NIVEL_3, NIVEL_4, MONEDA", nativeQuery = true)
+	List<Inde> findByAnioMes(@Param("anioMes") String anioMes);
+	
+}

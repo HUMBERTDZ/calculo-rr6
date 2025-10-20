@@ -1,0 +1,17 @@
+package com.ws_rr7_generico.services;
+
+import java.io.IOException;
+import java.util.List;
+
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+public interface BASEService {
+	ArchivoRespuesta obtenerBASE(String nombre) throws IOException ;
+
+	ResponseMessage updateBase(List<BaseLayoutRr7> getBaseLayoutRr7);
+	
+	boolean getExistRecords(String anioMes);
+	
+}

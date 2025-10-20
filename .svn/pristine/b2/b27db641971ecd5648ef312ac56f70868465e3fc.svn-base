@@ -1,0 +1,183 @@
+package com.ws_rr7_generico.services.impl;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.util.Base64;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ws_rr7_generico.dao.DeudDAO;
+import com.ws_rr7_generico.models.ArchivoRespuesta;
+import com.ws_rr7_generico.models.BaseLayoutRr7;
+import com.ws_rr7_generico.models.Cred;
+import com.ws_rr7_generico.models.Deud;
+import com.ws_rr7_generico.models.Inmu;
+import com.ws_rr7_generico.rest.reportesRegulatorios;
+import com.ws_rr7_generico.services.DEUDService;
+import com.ws_rr7_generico.util.Constantes;
+import com.ws_rr7_generico.util.ResponseMessage;
+
+@Transactional(rollbackFor = Exception.class)
+@Service
+public class DEUDServiceImpl implements DEUDService {
+	
+	Logger logger = LoggerFactory.getLogger(reportesRegulatorios.class);
+	
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+	
+	
+	
+	@Autowired
+	private DeudDAO deudDAO;
+	
+	String nivel1 = "0",nivel2 = "0",nivel3 = "0",nivel4 = "0",moneda = "0",operacion = "0",cveRamo = "0",plazo = "0",afectacion = "0";
+	double primasPorCobrarTotal = 0,recargos = 0,impuestos = 0,derechosPoliza = 0,consecutivo = 0,recargosDev = 0,derechosPolizaDev = 0,comiXDev = 0,primasPorCobrarAfecto = 0;
+	
+	String cadena =	nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+			.concat(moneda).concat("|").concat(String.valueOf(consecutivo)).concat("|").concat(operacion).concat("|")
+			.concat(cveRamo).concat("|").concat(plazo).concat("|").concat(afectacion).concat("|").concat(String.valueOf(primasPorCobrarTotal))
+			.concat("|").concat(String.valueOf(recargos)).concat("|").concat(String.valueOf(impuestos)).concat("|").concat(String.valueOf(derechosPoliza))
+			.concat("|").concat(String.valueOf(recargosDev)).concat("|").concat(String.valueOf(derechosPolizaDev)).concat("|").concat(String.valueOf(comiXDev))
+			.concat("|").concat(String.valueOf(primasPorCobrarAfecto)).concat("|;");
+
+	@Override
+	public ArchivoRespuesta obtenerDEUD(String nombre, String anioMes) throws IOException {
+		ArchivoRespuesta ar = new ArchivoRespuesta();
+		ar.setBaseArchivo(GenerarTxtDeud(nombre, anioMes));
+		ar.setNombreArchivo(nombre);
+		return ar;
+	}
+
+	public String GenerarTxtDeud(String nombre, String anioMes) throws IOException {
+
+		String response = "";
+//		List<Deud> ListaDEUD= deudDAO.findAll();
+		List<Deud> ListaDEUD = deudDAO.findByAnioMes(anioMes);
+		File archivo = new File("D:\\TempSesa\\" + nombre);
+
+		if (archivo.exists()) {
+			archivo.delete();
+		}
+		archivo.createNewFile();
+		FileWriter fw = new FileWriter(archivo, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		String pattern = "#.###";
+		DecimalFormat decimalFormat =  new DecimalFormat(pattern);
+		if (ListaDEUD != null && ListaDEUD.size() != 0) {
+			for (Deud Lista : ListaDEUD) {
+				if(Lista != null) {
+				nivel1 = Lista.getNivel1();
+				nivel2 = Lista.getNivel2();
+				nivel3 = Lista.getNivel3();
+				nivel4 = Lista.getNivel4();
+				moneda = Lista.getMoneda();
+				consecutivo = Lista.getConsecutivo();
+				int cons = (int) Math.round(consecutivo);
+				operacion = Lista.getOperacion();
+				cveRamo = Lista.getCveRamo();
+				plazo = Lista.getPlazo();
+				afectacion = Lista.getAfectacion();
+				primasPorCobrarTotal = Lista.getPrimasPorCobrarTotal();
+				String PPC =  decimalFormat.format(primasPorCobrarTotal);
+				recargos = Lista.getRecargos();
+				String rec =  decimalFormat.format(recargos);
+				impuestos = Lista.getImpuestos();
+				String imp =  decimalFormat.format(impuestos);
+				derechosPoliza = Lista.getDerechosPoliza();
+				String DP =  decimalFormat.format(derechosPoliza);
+				recargosDev = Lista.getRecargosDev();
+				String RD =  decimalFormat.format(recargosDev);
+				derechosPolizaDev = Lista.getDerechosPolizaDev();
+				String DPD =  decimalFormat.format(derechosPolizaDev);
+				comiXDev = Lista.getComiXDev();
+				String CXD =  decimalFormat.format(comiXDev);
+				primasPorCobrarAfecto = Lista.getPrimasPorCobrarAfecto();
+				String PPCA =  decimalFormat.format(primasPorCobrarAfecto);
+				
+				bw.write(nivel1.concat("|").concat(nivel2).concat("|").concat(nivel3).concat("|").concat(nivel4).concat("|")
+						.concat(moneda).concat("|").concat(String.valueOf(cons)).concat("|").concat(operacion).concat("|")
+						.concat(cveRamo).concat("|").concat(plazo).concat("|").concat(afectacion).concat("|").concat(String.valueOf(PPC))
+						.concat("|").concat(String.valueOf(rec)).concat("|").concat(String.valueOf(imp)).concat("|").concat(String.valueOf(DP))
+						.concat("|").concat(String.valueOf(RD)).concat("|").concat(String.valueOf(DPD)).concat("|").concat(String.valueOf(CXD))
+						.concat("|").concat(String.valueOf(PPCA)).concat("|;"));
+				bw.newLine();
+				}
+			}
+			System.out.println("lleno");
+		} else {
+			bw.write(cadena);
+			bw.newLine();
+			System.out.println("nulo o vacio");
+		}
+		bw.close();
+		fw.close();
+		System.out.println("Archivo DEUD creado correctamente");
+		byte[] input_file;
+		byte[] encodedBytes;
+		input_file = Files.readAllBytes(Paths.get(archivo.getAbsolutePath()));
+		encodedBytes = Base64.getEncoder().encode(input_file);
+		response = new String(encodedBytes);
+		return response;
+	}
+
+	@Override
+	public String saveList(List<Deud> lista) {
+		deudDAO.saveAll(lista);
+		return "ok";
+	}
+
+	@Override
+	public ResponseMessage updateDeud(List<BaseLayoutRr7> getBaseLayoutRr7) {
+		ResponseMessage respuesta = null;		
+		List<Deud> getDeud = deudDAO.findAll();
+		BaseLayoutRr7 baseLayoutRr7Result ;
+		for (Deud deud: getDeud) {
+
+			baseLayoutRr7Result = getBaseLayoutRr7
+	                .stream().filter(producer -> producer.getCtaQtoNivNvoCat().concat(""+producer.getTipoMoneda()).
+	                		equals(deud.getNivel1()+deud.getNivel2()+deud.getNivel3()+deud.getNivel4()+deud.getMoneda())).findFirst().orElse(null);
+			if (baseLayoutRr7Result != null) {
+				deud.setRecargos((int)baseLayoutRr7Result.getMontMonConsolidada());
+			}else {
+				deud.setRecargos(0);
+			}			
+		}
+		if (deudDAO.saveAll(getDeud) != null) {
+			respuesta = new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "Archivo Deud actualizado ", 1);
+		}		
+		return respuesta;
+	}
+	
+	@Override
+	public boolean getExistRecords(String anioMes) {
+
+		boolean existenRegistros = false;
+		
+
+		String query = "SELECT IIF (COUNT(*) >= 1, 1, 0) AS EXISTEN_REGISTROS FROM DEUD WHERE ANIOMES = '" + anioMes + "';";
+
+		logger.info(query);
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while(rowSet.next()){
+			existenRegistros =   rowSet.getInt("EXISTEN_REGISTROS") == 1 ? true : false ;
+		}
+		logger.info("existenRegistros " + existenRegistros);
+		return existenRegistros;
+	}
+
+
+}
