@@ -8,10 +8,10 @@
 		<version>2.5.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.ws_rr6_plenit</groupId>
-	<artifactId>ws_rr6_plenit</artifactId>
+	<groupId>com.ws_rr6_safa_calculo</groupId>
+	<artifactId>ws_rr6_safa_calculo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>ws_rr6_plenit</name>
+	<name>ws_rr6_safa_calculo</name>
 	<description>WebService_rr6_plenit</description>
 	<properties>
 		<java.version>1.8</java.version>
