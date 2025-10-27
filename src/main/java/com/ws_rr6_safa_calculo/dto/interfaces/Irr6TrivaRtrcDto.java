@@ -6,15 +6,13 @@ import java.util.Map;
 public interface Irr6TrivaRtrcDto {
 
 
-	int createTable(int trimestre, int anio);
+	boolean createTable(int trimestre, int anio);
 
 	List<Map<String, Object>> select();
 
-	int crearArchivo(int anio, String nombre);
+	boolean crearArchivo(int anio, String nombre);
 
-	String encriptarArchivo(String nombreArchivo);
-
-	int validateTable();
+	boolean validateTable();
 
 	int updateParticipacionReaseg();
 
@@ -34,12 +32,14 @@ public interface Irr6TrivaRtrcDto {
 
 	int updateLineasContrato();
 
-	int updateFormatDate();
+	boolean updateFormatDate();
 
-	/**SOLO SE UTILIZA CUANDO SE GENERA EL PRIMER REPORTE SIN HISTORICO*/
-	int updateTipoCaptura();
+	/**
+	 * SOLO SE UTILIZA CUANDO SE GENERA EL PRIMER REPORTE SIN HISTORICO
+	 */
+	boolean updateTipoCaptura();
 
 	int updateReasegInscritos();
 
-	int save(int trimestre, int anio, String encodedString, String nombreArchivo, String numeroDocumento);
+	boolean save(int trimestre, int anio, String encodedString, String nombreArchivo, String numeroDocumento);
 }

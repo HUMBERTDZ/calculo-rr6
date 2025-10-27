@@ -1,5 +1,7 @@
 package com.ws_rr6_safa_calculo.services.impl;
 
+import com.ws_rr6_safa_calculo.dao.CcHistoricoRyRDao;
+import com.ws_rr6_safa_calculo.models.Cchistoricoryr;
 import com.ws_rr6_safa_calculo.models.HistoricoRyR;
 import com.ws_rr6_safa_calculo.services.interfaces.ICalculateTrivaService;
 import com.ws_rr6_safa_calculo.util.GenericsMethods;
@@ -21,13 +23,15 @@ public class IRr6ServiceImpl implements IRr6Service {
     // atributos
     private final Irr6TrivaRtreDto irr6TrivaRtreDto;
     private final IHistoricoRyRService iHistoricoRyRService;
+    private final CcHistoricoRyRDao iCcHistoricoRyRDao;
     private final ICalculateTrivaService iCalculateTrivaService;
 
     // inyeccion de dependencias
     @Autowired
-    public IRr6ServiceImpl(Irr6TrivaRtreDto irr6TrivaRtreDto, IHistoricoRyRService iHistoricoRyRService, ICalculateTrivaService iCalculateTrivaService) {
+    public IRr6ServiceImpl(Irr6TrivaRtreDto irr6TrivaRtreDto, IHistoricoRyRService iHistoricoRyRService, CcHistoricoRyRDao iCcHistoricoRyRDao, ICalculateTrivaService iCalculateTrivaService) {
         this.irr6TrivaRtreDto = irr6TrivaRtreDto;
         this.iHistoricoRyRService = iHistoricoRyRService;
+        this.iCcHistoricoRyRDao = iCcHistoricoRyRDao;
         this.iCalculateTrivaService = iCalculateTrivaService;
     }
 
@@ -43,6 +47,12 @@ public class IRr6ServiceImpl implements IRr6Service {
     }
 
     @Override
+    public int getCcIdByNameFile(String nameFile) {
+        Cchistoricoryr catHistorico = iCcHistoricoRyRDao.findByNombredocumento(nameFile);
+        return catHistorico.getId();
+    }
+
+    @Override
     public boolean deleteRr6TrivaByNumFile(int numFile, int trimestre, int anio) {
         try {
             return irr6TrivaRtreDto.deleteRr6TrivaByNumFile(numFile, trimestre, anio);
@@ -53,32 +63,32 @@ public class IRr6ServiceImpl implements IRr6Service {
 
     @Override
     public boolean getCalculateRTRE(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRTRE(trimestre, anio);
+        return iCalculateTrivaService.calculateRTRE(trimestre, anio, String.valueOf(getCcIdByNameFile("RTRE")));
     }
 
     @Override
     public boolean getCalculateRTRC(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRTRC(trimestre, anio);
+        return iCalculateTrivaService.calculateRTRC(trimestre, anio, String.valueOf(getCcIdByNameFile("RTRC")));
     }
 
     @Override
     public boolean getCalculateRTRF(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRTRF(trimestre, anio);
+        return iCalculateTrivaService.calculateRTRF(trimestre, anio, String.valueOf(getCcIdByNameFile("RTRF")));
     }
 
     @Override
     public boolean getCalculateRTRR(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRTRR(trimestre, anio);
+        return iCalculateTrivaService.calculateRTRR(trimestre, anio, String.valueOf(getCcIdByNameFile("RTRR")));
     }
 
     @Override
     public boolean getCalculateRTRS(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRTRS(trimestre, anio);
+        return iCalculateTrivaService.calculateRTRS(trimestre, anio, String.valueOf(getCcIdByNameFile("RTRS")));
     }
 
     @Override
     public boolean getCalculateRARN(int trimestre, int anio) {
-        return iCalculateTrivaService.calculateRARN(trimestre, anio);
+        return iCalculateTrivaService.calculateRARN(trimestre, anio, String.valueOf(getCcIdByNameFile("RARN")));
     }
 }
 

@@ -212,7 +212,7 @@ public class Rr6TrivaRarnDtoImpl implements Irr6TrivaRarnDto {
             BufferedWriter bw = new BufferedWriter(fw);
 
             if (list == null || list.isEmpty()) {
-                bw.write(0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + //7
+                bw.write("" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + //7
                         0 + "|" + 0 + "|" + 0 + "|" + 0 + "|;");
                 bw.newLine();
             } else {

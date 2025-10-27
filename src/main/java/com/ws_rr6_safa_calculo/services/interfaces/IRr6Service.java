@@ -24,6 +24,13 @@ public interface IRr6Service {
     HistoricoRyR getRr6TrivaByNumFile(int numFile, int trimestre, int anio);
 
     /**
+     * Obtener el id/numero documento de acuerdo al tipo de archivo
+     * @param name del tipo de archivo
+     * @return id/numero
+     */
+    int getCcIdByNameFile(String name);
+
+    /**
      * Elimina un archivo por su nuemro de documento
      *
      * @param numFile   numero de archivo correspondiente

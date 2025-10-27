@@ -174,9 +174,9 @@ public class Rr6TrivaRtrsDtoImpl implements Irr6TrivaRtrsDto {
             BufferedWriter bw = new BufferedWriter(fw);
 
             if (list == null || list.isEmpty()) {
-                bw.write(0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + //7
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" +
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|;");
+                bw.write(0 + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + 0 + "|" + //7
+                        0 + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + 0 + "|" + 0 + "|" +
+                        "" + "|" + "" + "|" + "" + "|" + 0 + "|;");
                 bw.newLine();
             } else {
                 listContratos = new ArrayList<>();

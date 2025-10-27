@@ -2,6 +2,7 @@ package com.ws_rr6_safa_calculo.services.impl;
 
 import com.ws_rr6_safa_calculo.dto.interfaces.*;
 import com.ws_rr6_safa_calculo.services.interfaces.ICalculateTrivaService;
+import com.ws_rr6_safa_calculo.services.interfaces.IRr6Service;
 import com.ws_rr6_safa_calculo.util.Report;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
+    // atributos
     static final Logger logger = LoggerFactory.getLogger(CalculateTrivaServiceImpl.class);
     private final Irr6TrivaRtreDto irr6TrivaRtreDto;
     private final Irr6TrivaRtrcDto irr6TrivaRtrcDto;
@@ -18,6 +20,7 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
     private final Irr6TrivaRtrsDto irr6TrivaRtrsDto;
     private final Irr6TrivaRarnDto irr6TrivaRarnDto;
 
+    // inyeccion de dependencias
     @Autowired
     public CalculateTrivaServiceImpl(Irr6TrivaRtreDto irr6TrivaRtreDto, Irr6TrivaRtrcDto irr6TrivaRtrcDto, Irr6TrivaRtrfDto irr6TrivaRtrfDto, Irr6TrivaRtrrDto irr6TrivaRtrrDto, Irr6TrivaRtrsDto irr6TrivaRtrsDto, Irr6TrivaRarnDto irr6TrivaRarnDto) {
         this.irr6TrivaRtreDto = irr6TrivaRtreDto;
@@ -28,13 +31,10 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
         this.irr6TrivaRarnDto = irr6TrivaRarnDto;
     }
 
-
     @Override
-    public boolean calculateRTRE(int trimestre, int anio) {
+    public boolean calculateRTRE(int trimestre, int anio, String numeroDocumento) {
         boolean reporteCreado = false;
-        String numeroDocumento = "17";
         String nombreCompleto = Report.buildFileName("RTRE", anio, trimestre);
-
         try {
             irr6TrivaRtreDto.validTableRtre();
             irr6TrivaRtreDto.createTableRtre(trimestre, anio);
@@ -44,16 +44,12 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-
         return reporteCreado;
     }
 
     @Override
-    public boolean calculateRTRC(int trimestre, int anio) {
-
+    public boolean calculateRTRC(int trimestre, int anio, String numeroDocumento) {
         boolean reporteCreado = false;
-
-        String numeroDocumento = "18";
         String nombreCompleto = Report.buildFileName("RTRC", anio, trimestre);
         try {
             irr6TrivaRtrcDto.validateTable();
@@ -70,22 +66,19 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
             irr6TrivaRtrcDto.updateTipoReasegNacional();
             irr6TrivaRtrcDto.updateClaveReasegNacional();
             irr6TrivaRtrcDto.updateParticipacionReaseg();
-
             irr6TrivaRtrcDto.crearArchivo(anio, nombreCompleto);
             irr6TrivaRtrcDto.save(trimestre, anio, Report.encodeFileToBase64(nombreCompleto), nombreCompleto, numeroDocumento);
             reporteCreado = true;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-
         return reporteCreado;
     }
 
     @Override
-    public boolean calculateRTRF(int trimestre, int anio) {
+    public boolean calculateRTRF(int trimestre, int anio, String numeroDocumento) {
 
         boolean reporteCreado = false;
-        String numeroDocumento = "21";
         String nombreCompleto = Report.buildFileName("RTRF", anio, trimestre);
         try {
             irr6TrivaRtrfDto.validateTable();
@@ -101,10 +94,9 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
     }
 
     @Override
-    public boolean calculateRTRR(int trimestre, int anio) {
+    public boolean calculateRTRR(int trimestre, int anio, String numeroDocumento) {
 
         boolean reporteCreado = false;
-        String numeroDocumento = "19";
         String nombreCompleto = Report.buildFileName("RTRR", anio, trimestre);
         try {
             irr6TrivaRtrrDto.validateTable();
@@ -125,10 +117,9 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
     }
 
     @Override
-    public boolean calculateRTRS(int trimestre, int anio) {
+    public boolean calculateRTRS(int trimestre, int anio, String numeroDocumento) {
 
         boolean reporteCreado = false;
-        String numeroDocumento = "20";
         String nombreCompleto = Report.buildFileName("RTRS", anio, trimestre);
         try {
             irr6TrivaRtrsDto.validateTable();
@@ -144,10 +135,9 @@ public class CalculateTrivaServiceImpl implements ICalculateTrivaService {
     }
 
     @Override
-    public boolean calculateRARN(int trimestre, int anio) {
+    public boolean calculateRARN(int trimestre, int anio, String numeroDocumento) {
 
         boolean reporteCreado = false;
-        String numeroDocumento = "22";
         String nombreCompleto = Report.buildFileName("RARN", anio, trimestre);
         try {
             irr6TrivaRarnDto.createTablePcc();

@@ -33,14 +33,13 @@ public class RestControllerRr6Impl implements IRestControllerRr6 {
     @Override
     public ResponseEntity<ResponseMessage> reporteRR6(int anio, int trimestre) {
         try {
-
             List<HistoricoRyR> listHistoricoRR = new ArrayList<>();
-            listHistoricoRR.add(reportRtre(trimestre, anio, 17));
-            listHistoricoRR.add(reportRtrc(trimestre, anio, 18));
-            listHistoricoRR.add(reportRtrf(trimestre, anio, 21));
-            listHistoricoRR.add(reportRtrr(trimestre, anio, 19));
-            listHistoricoRR.add(reportRtrs(trimestre, anio, 20));
-            listHistoricoRR.add(reportRarn(trimestre, anio, 22));
+            listHistoricoRR.add(reportRtre(trimestre, anio, irr6Ser.getCcIdByNameFile("RTRE")));
+            listHistoricoRR.add(reportRtrc(trimestre, anio, irr6Ser.getCcIdByNameFile("RTRC")));
+            listHistoricoRR.add(reportRtrf(trimestre, anio, irr6Ser.getCcIdByNameFile("RTRF")));
+            listHistoricoRR.add(reportRtrr(trimestre, anio, irr6Ser.getCcIdByNameFile("RTRR")));
+            listHistoricoRR.add(reportRtrs(trimestre, anio, irr6Ser.getCcIdByNameFile("RTRS")));
+            listHistoricoRR.add(reportRarn(trimestre, anio, irr6Ser.getCcIdByNameFile("RARN")));
 
             return ResponseEntity.ok(new ResponseMessage(Constantes.RESPONSEMESSAGE_OK, "reportes calculados", listHistoricoRR));
 
@@ -72,7 +71,6 @@ public class RestControllerRr6Impl implements IRestControllerRr6 {
         } catch (Exception e) {
             return null;
         }
-
         return historico;
     }
 
@@ -83,9 +81,9 @@ public class RestControllerRr6Impl implements IRestControllerRr6 {
         // si el reporte no fue calculado
         if (!reporteCalculado) {
             return null;
-        } else {
-            return irr6Ser.getRr6TrivaByNumFile(numFile, trimestre, anio);
         }
+
+        return irr6Ser.getRr6TrivaByNumFile(numFile, trimestre, anio);
     }
 
 

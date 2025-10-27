@@ -53,8 +53,7 @@ public class Rr6TrivaRtrfDtoImpl implements Irr6TrivaRtrfDto {
             logger.info(query);
             execute = 1;
         } catch (Exception e) {
-            // TODO: handle exception
-            e.printStackTrace();
+            logger.error(e.getMessage());
         }
         return execute;
     }
@@ -168,11 +167,11 @@ public class Rr6TrivaRtrfDtoImpl implements Irr6TrivaRtrfDto {
             BufferedWriter bw = new BufferedWriter(fw);
 
             if (list == null || list.isEmpty()) {
-                bw.write(0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + //7
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" +
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" +
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + //28
-                        0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|;");//33
+                bw.write("" + "|" + "" + "|" + "" + "|" + "" + "|" + 0 + "|" + "" + "|" + 0 + "|" + //7
+                            0 + "|" + 0 + "|" + 0 + "|" + "" + "|" + "" + "|" + 0 + "|" + 0 + "|" +
+                            0 + "|" + "" + "|" + 0 + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" +
+                            "" + "|" + "" + "|" + "" + "|" + 0 + "|" + "" + "|" + "" + "|" + "" + "|" + //28
+                            "" + "|" + "" + "|" + "" + "|" + "" + "|" + 0 + "|;");//33
                 bw.newLine();
             } else {
                 List<ContratoDTO> listContratos = new ArrayList<>();

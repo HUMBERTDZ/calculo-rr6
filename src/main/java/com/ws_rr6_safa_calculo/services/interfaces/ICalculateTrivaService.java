@@ -8,7 +8,7 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRTRC(int trimestre, int anio);
+    boolean calculateRTRC(int trimestre, int anio, String numeroDocumento);
 
     /**
      * Calcular Reporte RTRF
@@ -17,7 +17,7 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRTRF(int trimestre, int anio);
+    boolean calculateRTRF(int trimestre, int anio, String numeroDocumento);
 
     /**
      * Calcular Reporte RTRE
@@ -26,7 +26,7 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRTRE(int trimestre, int anio);
+    boolean calculateRTRE(int trimestre, int anio, String numeroDocumento);
 
     /**
      * Calcular Reporte RTRR
@@ -35,7 +35,7 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRTRR(int trimestre, int anio);
+    boolean calculateRTRR(int trimestre, int anio, String numeroDocumento);
 
     /**
      * Calcular Reporte RTRS
@@ -44,7 +44,7 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRTRS(int trimestre, int anio);
+    boolean calculateRTRS(int trimestre, int anio, String numeroDocumento);
 
     /**
      * Calcular Reporte RARN
@@ -53,5 +53,5 @@ public interface ICalculateTrivaService {
      * @param anio      del archivo a calcular
      * @return boolean si se hizo el calculo correctamente
      */
-    boolean calculateRARN(int trimestre, int anio);
+    boolean calculateRARN(int trimestre, int anio, String numeroDocumento);
 }

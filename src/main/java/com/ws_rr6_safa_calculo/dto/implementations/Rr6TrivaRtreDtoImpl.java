@@ -4,10 +4,7 @@ package com.ws_rr6_safa_calculo.dto.implementations;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +46,6 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
     public boolean validTableRtre() {
         //--SE VALIDA SI EXISTE LA TABLA, ELIMINA Y CREA LA TABLA PARA EL REPORTE RTRE
         String query = "IF OBJECT_ID('RR6TRIVARTRE') IS NOT NULL BEGIN DROP TABLE RR6TRIVARTRE END";
-
         try {
             jdbcTemplate.execute(query);
             logger.info(query);
@@ -58,71 +54,37 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
             logger.error(e.getMessage(), e);
             return false;
         }
-
     }
 
     //--SELECCION PARA CREAR TABLA RTRE TRIMESTRAL
     @Override
-    public int createTableRtre(int trimestre, int anio) {
-
-        int execute = 0;
-
-        Map<String, String> fechas = GenericsMethods.getFechas(trimestre, anio);
+    public boolean createTableRtre(int trimestre, int anio) {
         if (trimestre == 0 || anio == 0) {
             mensaje = "ALGUNO DE LOS CAMPOS TRIMESTRO O AÑO NO SON VALIDOS. TRIMESTRE:" + trimestre + " AÑO:" + anio;
             logger.info(mensaje);
-        } else {
-            // Iterate over all fechas, using the keySet method.
-            //System.out.println(key + " - " + fechas.get(key));
-            searchKey = "fechaInicio";
-            if (fechas.containsKey(searchKey))
-                fechaInicio = fechas.get(searchKey);
-            logger.info("Found total " + fechas.get(searchKey) + " " + searchKey);
-            searchKey = "fechaFin";
-            fechaFin = fechas.get(searchKey);
-            logger.info("Found total " + fechas.get(searchKey) + " " + searchKey);
-
-            //EVALUAMOS FECHAS DE INICIO Y FIN DE VIGENCIA DEL TRIMESTRE
-            if (fechaInicio.equals("") || fechaInicio.isEmpty()) {
-                mensaje = "NO SE PUDO OBETENER LA FECHA DE INICIO DEL TRIMESTRE: " + fechaInicio;
-                logger.info(mensaje);
-            } else {
-                if (fechaFin.equals("") || fechaFin.isEmpty()) {
-                    mensaje = "NO SE PUDO OBETENER LA FECHA DE FIN DEL TRIMESTRE: " + fechaFin;
-                    logger.info(mensaje);
-                } else {
-                    //EJECUTAMOS LA CREACION DE LA TABLA
-                    String query = " SELECT GETDATE() AS FECHACALCULO, 	SUBRAMO AS CLAVENEGOCIO,  "
-                            + " NEGOCIOSCUBIERTOS, 				1 AS CLAVEESTRATEGICA, "
-                            + "  1 AS ORDENCOBERTURA, 				NOMBRECONTRATO "
-                            + " INTO RR6TRIVARTRE "
-                            + " FROM DATOSCONTRATO "
-                            + " WHERE (INICIOVIGENCIA BETWEEN '" + fechaInicio + "' AND '" + fechaFin + "') "
-                            + " AND TIPOCONTRATOS NOT IN (1,3,5,8); ";
-                    try {
-
-                        jdbcTemplate.execute(query);
-                        logger.info(query);
-                        execute = 1;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            // Clear all values.
-            fechas.clear();
-            // Equals to zero.
-            logger.info("After clear operation, size: " + fechas.size());
-
         }
-
-        return execute;
+        //EJECUTAMOS LA CREACION DE LA TABLA
+        String query = " SELECT GETDATE() AS FECHACALCULO, 	SUBRAMO AS CLAVENEGOCIO,  "
+                + " NEGOCIOSCUBIERTOS, 				1 AS CLAVEESTRATEGICA, "
+                + "  1 AS ORDENCOBERTURA, 				NOMBRECONTRATO "
+                + " INTO RR6TRIVARTRE "
+                + " FROM DATOSCONTRATO "
+                + " WHERE (INICIOVIGENCIA BETWEEN '" + fechaInicio + "' AND '" + fechaFin + "') "
+                + " AND TIPOCONTRATOS NOT IN (1,3,5,8); ";
+        try {
+            jdbcTemplate.execute(query);
+            logger.info(query);
+            return true;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return false;
+        }
     }
 
     @Override
     public List<Map<String, Object>> selectRtre() {
 
-        //DEVUELVE LA LISTA DE OBJETOS PROVENIENTES DE QUERY
+        // obteniendo los registros de la tabla
         String query = "SELECT * FROM RR6TRIVARTRE;";
         List<Map<String, Object>> listRtre = jdbcTemplate.queryForList(query);
 
@@ -130,18 +92,14 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
         if (listRtre == null || listRtre.isEmpty()) {
             mensaje = "NO SE ENCONTRARON REGISTROS PARA EL REPORTE RTRE TRIMESTRAL";
             logger.info(mensaje);
-        } else {
-            return listRtre;
+            return null;
         }
-        return null;
+        return listRtre;
     }
 
 
     @Override
-    public int crearArchivo(int anio, String nombre) {
-
-        int made = 0;
-
+    public boolean crearArchivo(int anio, String nombre) {
         List<Map<String, Object>> listRtre = selectRtre();
         ContratoDTO contratoDTO = null;
         List<ContratoDTO> listContratos = null;
@@ -159,7 +117,7 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
             BufferedWriter bw = new BufferedWriter(fw);
 
             if (listRtre == null || listRtre.isEmpty()) {
-                bw.write(0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|" + 0 + "|;");
+                bw.write("" + "|" + "" + "|" + 0 + "|" + 0 + "|" + "" + "|;");
                 bw.newLine();
             } else {
                 listContratos = new ArrayList<>();
@@ -188,19 +146,16 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
             bw.close();
             fw.close();
 
-            made = 1;
+            return true;
         } catch (Exception e) {
-            return 0;
+            logger.error(e.getMessage(), e);
+            return false;
         }
-        return made;
     }
 
 
     @Override
-    public int save(int trimestre, int anio, String encodedString, String nombreArchivo, String numeroDocumento) {
-
-        int save = 0;
-
+    public boolean save(int trimestre, int anio, String encodedString, String nombreArchivo, String numeroDocumento) {
         Map<String, String> fechas = GenericsMethods.getFechas(trimestre, anio);
 
         searchKey = "fechaInicio";
@@ -220,12 +175,10 @@ public class Rr6TrivaRtreDtoImpl implements Irr6TrivaRtreDto {
             historicoRyR.setSubramo("000");
             historicoRyR.setReaseguradora(String.valueOf(trimestre));
             iHistoricoRyRService.save(historicoRyR);
-            save = 1;
+            return true;
         } catch (Exception e) {
-            return 0;
+            return false;
         }
-        fechas.clear();
-        return save;
     }
 
 
